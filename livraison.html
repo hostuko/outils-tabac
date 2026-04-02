@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comptage Livraison</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f; --surface: #1a1a1a; --card: #222222;
+    --accent: #f5a623; --text: #f0ece4; --muted: #666;
+    --border: #333; --green: #4caf7d; --red: #e8472a; --blue: #4a90d9;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--bg); color:var(--text); font-family:'DM Mono',monospace;
+    min-height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:20px; overflow-x:hidden;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:radial-gradient(ellipse at 20% 50%,rgba(245,166,35,.06) 0%,transparent 60%),
+               radial-gradient(ellipse at 80% 20%,rgba(232,71,42,.05) 0%,transparent 50%);
+    pointer-events:none;
+  }
+  .app { width:100%; max-width:560px; position:relative; }
+  .header { text-align:center; margin-bottom:32px; }
+  .header h1 { font-family:'Bebas Neue',sans-serif; font-size:52px; letter-spacing:3px; color:var(--accent); line-height:1; }
+  .header p { font-size:11px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+
+  .screen { display:none; animation:fadeUp .35s ease forwards; }
+  .screen.active { display:block; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes popIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+
+  .card { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:28px 30px; }
+  .card h2 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:2px; color:var(--accent); margin-bottom:6px; }
+  .subtitle { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:22px; }
+
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:7px; }
+  .field input {
+    width:100%; background:var(--surface); border:1px solid var(--border); border-radius:2px;
+    padding:13px 15px; color:var(--text); font-family:'DM Mono',monospace;
+    font-size:22px; font-weight:500; outline:none; transition:border-color .2s;
+  }
+  .field input:focus { border-color:var(--accent); }
+  .field input::placeholder { color:var(--muted); font-size:16px; }
+
+  .btn {
+    width:100%; background:var(--accent); color:#000; border:none; border-radius:2px;
+    padding:14px; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px;
+    cursor:pointer; transition:background .15s,transform .1s; margin-top:8px;
+  }
+  .btn:hover { background:#ffb83f; }
+  .btn:active { transform:scale(.98); }
+  .btn.secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
+  .btn.secondary:hover { border-color:var(--accent); color:var(--accent); background:transparent; }
+  .btn.pile-btn { background:transparent; color:var(--blue); border:1px solid var(--blue); font-size:16px; }
+  .btn.pile-btn:hover { background:rgba(74,144,217,.1); }
+  .btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+  .btn-row .btn { margin-top:0; }
+
+  /* Progress */
+  .progress-wrap { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .progress-bar { flex:1; height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .4s ease; }
+  .progress-label { font-size:11px; color:var(--muted); white-space:nowrap; min-width:76px; text-align:right; }
+
+  /* Stats */
+  .stats-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px; }
+  .stat-box { background:var(--surface); border:1px solid var(--border); border-radius:2px; padding:10px; text-align:center; }
+  .stat-val { font-family:'Bebas Neue',sans-serif; font-size:24px; color:var(--accent); line-height:1; }
+  .stat-lbl { font-size:9px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-top:2px; }
+
+  /* Pile indicator */
+  .pile-indicator {
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--surface); border:1px solid var(--border); border-radius:2px;
+    padding:10px 14px; margin-bottom:14px; transition:border-color .3s;
+  }
+  .pile-indicator.flash { border-color:var(--blue); }
+  .pile-indicator-left { display:flex; align-items:center; gap:10px; }
+  .pile-dot { width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 6px var(--accent); }
+  .pile-ind-lbl { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
+  .pile-ind-val { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--accent); letter-spacing:1px; }
+  .pile-ind-right { font-size:11px; color:var(--muted); }
+
+  /* Piles list */
+  .piles-section { margin-top:18px; }
+  .section-title { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:10px; }
+  .piles-container { display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; padding-right:4px; }
+  .piles-container::-webkit-scrollbar { width:3px; }
+  .piles-container::-webkit-scrollbar-track { background:var(--surface); }
+  .piles-container::-webkit-scrollbar-thumb { background:var(--border); }
+
+  .pile {
+    background:var(--surface); border:1px solid var(--border); border-radius:2px;
+    padding:11px 14px; display:flex; align-items:center; gap:10px;
+    animation:slideIn .3s ease;
+  }
+  .pile.pile-active { border-color:var(--accent); }
+  .pile-num { font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--accent); min-width:32px; line-height:1; }
+  .pile-info { flex:1; }
+  .pile-name { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px; }
+  .pile-boxes { display:flex; flex-wrap:wrap; gap:4px; }
+  .box-tag { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:2px 7px; font-size:11px; color:var(--text); }
+  .box-tag span { color:var(--accent); }
+  .pile-total { font-size:16px; font-weight:500; color:var(--text); text-align:right; min-width:52px; }
+  .pile-total small { display:block; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+
+  /* Result */
+  .result-banner { border-radius:2px; padding:14px 18px; margin-bottom:14px; display:flex; align-items:center; gap:12px; }
+  .result-banner.ok { background:rgba(76,175,125,.12); border:1px solid var(--green); }
+  .result-banner.ko { background:rgba(232,71,42,.12); border:1px solid var(--red); }
+  .result-icon { font-size:26px; line-height:1; }
+  .result-text strong { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:1px; display:block; }
+  .result-banner.ok .result-text strong { color:var(--green); }
+  .result-banner.ko .result-text strong { color:var(--red); }
+  .result-text p { font-size:11px; color:var(--muted); margin-top:2px; }
+
+  .compare-row { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; margin-bottom:10px; }
+  .compare-box { background:var(--surface); border:1px solid var(--border); border-radius:2px; padding:12px; text-align:center; }
+  .compare-box .val { font-family:'Bebas Neue',sans-serif; font-size:32px; line-height:1; }
+  .compare-box .lbl { font-size:9px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-top:4px; }
+  .compare-sep { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--muted); text-align:center; }
+
+  .diff-badge { display:inline-block; border-radius:2px; padding:4px 10px; font-size:12px; font-weight:500; }
+  .diff-badge.plus { background:rgba(76,175,125,.2); color:var(--green); }
+  .diff-badge.minus { background:rgba(232,71,42,.2); color:var(--red); }
+  .diff-badge.zero { background:rgba(245,166,35,.15); color:var(--accent); }
+
+  /* Correction table */
+  .correction-section { margin-top:18px; }
+  .corr-toggle {
+    display:flex; align-items:center; justify-content:space-between;
+    cursor:pointer; padding:10px 0; border-bottom:1px solid var(--border); margin-bottom:12px;
+  }
+  .corr-toggle span { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); }
+  .toggle-icon { font-size:13px; color:var(--muted); transition:transform .2s; display:inline-block; }
+  .corr-toggle.open .toggle-icon { transform:rotate(180deg); }
+  .corr-table { display:none; }
+  .corr-table.open { display:block; }
+
+  .corr-grid {
+    border:1px solid var(--border); border-radius:2px; overflow:hidden;
+    max-height:300px; overflow-y:auto;
+  }
+  .corr-grid::-webkit-scrollbar { width:3px; }
+  .corr-grid::-webkit-scrollbar-track { background:var(--surface); }
+  .corr-grid::-webkit-scrollbar-thumb { background:var(--border); }
+
+  .corr-thead {
+    display:grid; grid-template-columns:52px 70px 1fr auto;
+    background:var(--surface); border-bottom:1px solid var(--border);
+  }
+  .corr-thead > div { padding:7px 10px; font-size:9px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); }
+
+  .corr-row {
+    display:grid; grid-template-columns:52px 70px 1fr auto;
+    border-bottom:1px solid var(--border); background:var(--card); transition:background .2s;
+  }
+  .corr-row:last-child { border-bottom:none; }
+  .corr-row.validated { background:rgba(76,175,125,.06); }
+  .corr-row.modified  { background:rgba(245,166,35,.05); }
+  .corr-row > div { padding:7px 10px; display:flex; align-items:center; }
+
+  .corr-num { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--accent); }
+  .corr-pile { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+  .corr-input {
+    background:var(--surface); border:1px solid var(--border); border-radius:2px;
+    padding:5px 8px; color:var(--text); font-family:'DM Mono',monospace;
+    font-size:15px; font-weight:500; width:72px; outline:none; transition:border-color .2s;
+  }
+  .corr-input:focus { border-color:var(--accent); }
+  .corr-input.changed { border-color:var(--accent); color:var(--accent); }
+  .corr-input.validated-input { border-color:var(--green); }
+
+  .corr-val-btn {
+    background:transparent; border:1px solid var(--border); border-radius:2px;
+    padding:4px 9px; color:var(--muted); font-family:'DM Mono',monospace;
+    font-size:11px; cursor:pointer; transition:all .15s; white-space:nowrap;
+  }
+  .corr-val-btn:hover { border-color:var(--green); color:var(--green); }
+  .corr-val-btn.done { border-color:var(--green); color:var(--green); background:rgba(76,175,125,.1); }
+  .corr-val-btn.reval { border-color:var(--accent); color:var(--accent); }
+
+  .corr-footer {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:10px; padding-top:10px; border-top:1px solid var(--border);
+  }
+  .corr-footer-info { font-size:11px; color:var(--muted); }
+  .recalc-btn {
+    background:var(--accent); color:#000; border:none; border-radius:2px;
+    padding:8px 16px; font-family:'Bebas Neue',sans-serif; font-size:16px;
+    letter-spacing:1px; cursor:pointer; transition:background .15s;
+  }
+  .recalc-btn:hover { background:#ffb83f; }
+
+/* STACK VISUAL FIXED BOTTOM */
+.stack-visual {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #111;
+  border-top: 1px solid #333;
+  padding: 10px;
+  z-index: 999;
+}
+#stack-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  justify-content: center;
+}
+.stack {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+}
+.stack-box {
+  width: 40px;
+  height: 25px;
+  background: #f5a623;
+  margin: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #000;
+  font-weight: bold;
+}
+.stack-label {
+  font-size: 9px;
+  color: #aaa;
+  margin-top: 4px;
+  text-align:center;
+}
+body { padding-bottom:120px; }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>📦 LIVRAISON</h1>
+    <p>Comptage de cartons</p>
+  </div>
+
+  <!-- SETUP -->
+  <div class="screen active" id="screen-setup">
+    <div class="card">
+      <h2>Nouvelle livraison</h2>
+      <p class="subtitle">Renseigne les infos de départ</p>
+      <div class="field">
+        <label>Nombre de cartons à compter</label>
+        <input type="number" id="input-cartons" placeholder="ex: 24" min="1">
+      </div>
+      <div class="field">
+        <label>Nombre total d'articles attendus</label>
+        <input type="number" id="input-articles-total" placeholder="ex: 480" min="1">
+      </div>
+      <button class="btn" onclick="startCounting()">COMMENCER →</button>
+    </div>
+  </div>
+
+  <!-- COMPTAGE -->
+  <div class="screen" id="screen-count">
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-label" id="progress-label"></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" id="stat-done">0</div><div class="stat-lbl">Rangés</div></div>
+        <div class="stat-box"><div class="stat-val" id="stat-remaining">—</div><div class="stat-lbl">Restants</div></div>
+        <div class="stat-box"><div class="stat-val" id="stat-scanned">0</div><div class="stat-lbl">Articles total</div></div>
+      </div>
+
+      <div class="pile-indicator" id="pile-indicator">
+        <div class="pile-indicator-left">
+          <div class="pile-dot"></div>
+          <div>
+            <div class="pile-ind-lbl">Pile en cours</div>
+            <div class="pile-ind-val" id="current-pile-label">PILE 1</div>
+          </div>
+        </div>
+        <div class="pile-ind-right" id="pile-box-info">Carton 1</div>
+      </div>
+
+      <div class="field">
+        <label id="count-label">Articles dans le carton 1</label>
+        <input type="number" id="input-box-count" placeholder="ex: 20" min="0"
+          onkeydown="if(event.key==='Enter') nextBox()">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn pile-btn" onclick="changePile()">⇥ PILE SUIVANTE</button>
+        <button class="btn" onclick="nextBox()" id="btn-next">SUIVANT →</button>
+      </div>
+    </div>
+
+    <div class="piles-section">
+      <div class="section-title">Piles rangées</div>
+      <div class="piles-container" id="piles-container">
+        <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">Aucune pile pour l'instant…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RÉSULTAT -->
+  <div class="screen" id="screen-result">
+    <div class="card">
+      <h2>Résultat</h2>
+      <p class="subtitle">Comparaison finale</p>
+
+      <div id="result-banner" class="result-banner ok">
+        <div class="result-icon" id="result-icon">✅</div>
+        <div class="result-text">
+          <strong id="result-title">—</strong>
+          <p id="result-sub">—</p>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-box">
+          <div class="val" id="res-expected" style="color:var(--muted)">—</div>
+          <div class="lbl">Attendus</div>
+        </div>
+        <div class="compare-sep">VS</div>
+        <div class="compare-box">
+          <div class="val" id="res-counted" style="color:var(--accent)">—</div>
+          <div class="lbl">Comptés</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:16px;">
+        <span id="diff-badge" class="diff-badge zero">—</span>
+      </div>
+
+      <!-- Tableau correction -->
+      <div class="correction-section">
+        <div class="corr-toggle" id="corr-toggle" onclick="toggleCorrection()">
+          <span>🔧 Tableau de correction des cartons</span>
+          <span class="toggle-icon" id="toggle-icon">▼</span>
+        </div>
+        <div class="corr-table" id="corr-table">
+          <div class="corr-grid" id="corr-grid"></div>
+          <div class="corr-footer">
+            <span class="corr-footer-info" id="corr-info">0 validé(s)</span>
+            <button class="recalc-btn" onclick="recalcFromCorrections()">↻ RECALCULER</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn secondary" style="margin-top:14px;" onclick="restart()">NOUVELLE LIVRAISON</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let totalBoxes    = 0;
+  let totalExpected = 0;
+  let currentBox    = 0;
+  let currentPile   = 1;
+  let piles         = [];   // [{pileNum, boxes:[{boxNum,count}], total}]
+  let allBoxes      = [];   // [{boxNum, count, pileNum}]
+  let corrValidated = {};   // boxNum -> bool
+
+  /* ─── SETUP ─── */
+  function startCounting() {
+    const nb  = parseInt(document.getElementById('input-cartons').value);
+    const art = parseInt(document.getElementById('input-articles-total').value);
+    if (!nb || nb < 1 || !art || art < 1) { shake(document.querySelector('#screen-setup .card')); return; }
+    totalBoxes = nb; totalExpected = art;
+    currentBox = 0; currentPile = 1; piles = []; allBoxes = []; corrValidated = {};
+    showScreen('screen-count');
+    updateCountScreen();
+  }
+
+  /* ─── SUIVANT ─── */
+  function nextBox() {
+    const val = parseInt(document.getElementById('input-box-count').value);
+    if (isNaN(val) || val < 0) { shake(document.getElementById('input-box-count')); return; }
+
+    currentBox++;
+    const boxNum = currentBox;
+    let pile = piles.find(p => p.pileNum === currentPile);
+    if (!pile) { pile = { pileNum: currentPile, boxes: [], total: 0 }; piles.push(pile); }
+    pile.boxes.push({ boxNum, count: val });
+    pile.total += val;
+    allBoxes.push({ boxNum, count: val, pileNum: currentPile });
+
+    document.getElementById('input-box-count').value = '';
+    document.getElementById('input-box-count').focus();
+
+    if (currentBox >= totalBoxes) { showResult(); }
+    else { updateCountScreen(); renderPiles(); }
+  }
+
+  /* ─── CHANGER DE PILE ─── */
+  function changePile() {
+    currentPile++;
+    const ind = document.getElementById('pile-indicator');
+    ind.classList.add('flash');
+    setTimeout(() => ind.classList.remove('flash'), 500);
+    updateCountScreen();
+    renderPiles();
+  }
+
+  /* ─── UI COMPTAGE ─── */
+  function updateCountScreen() {
+    const next      = currentBox + 1;
+    const scanned   = allBoxes.reduce((s, b) => s + b.count, 0);
+    const pct       = currentBox / totalBoxes * 100;
+    const thisPile  = piles.find(p => p.pileNum === currentPile);
+    const firstIn   = thisPile ? thisPile.boxes[0].boxNum : next;
+
+    document.getElementById('stat-done').textContent      = currentBox;
+    document.getElementById('stat-remaining').textContent = totalBoxes - currentBox;
+    document.getElementById('stat-scanned').textContent   = scanned;
+    document.getElementById('progress-fill').style.width  = pct + '%';
+    document.getElementById('progress-label').textContent = `${currentBox} / ${totalBoxes}`;
+    document.getElementById('count-label').textContent    = `Articles dans le carton ${next}`;
+    document.getElementById('current-pile-label').textContent = `PILE ${currentPile}`;
+    document.getElementById('pile-box-info').textContent  =
+      thisPile ? `C${firstIn} → C${currentBox || '?'}` : `Carton ${next}`;
+    document.getElementById('btn-next').textContent = (next === totalBoxes) ? 'TERMINER ✓' : 'SUIVANT →';
+  }
+
+  /* ─── RENDER PILES ─── */
+  function renderPiles() {
+    const container = document.getElementById('piles-container');
+    if (piles.length === 0) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">Aucune pile pour l\'instant…</div>';
+      return;
+    }
+    container.innerHTML = piles.map(pile => {
+      const active = pile.pileNum === currentPile;
+      const tags   = pile.boxes.map(b => `<div class="box-tag">C${b.boxNum} <span>${b.count}</span></div>`).join('');
+      return `<div class="pile ${active ? 'pile-active' : ''}">
+        <div class="pile-num">${pile.pileNum}</div>
+        <div class="pile-info">
+          <div class="pile-name">Pile ${pile.pileNum}${active ? ' — EN COURS' : ''} · ${pile.boxes.length} carton${pile.boxes.length>1?'s':''}</div>
+          <div class="pile-boxes">${tags}</div>
+        </div>
+        <div class="pile-total">${pile.total}<small>articles</small></div>
+      </div>`;
+    }).join('');
+    container.scrollTop = container.scrollHeight;
+    renderStackVisual();
+  }
+
+  /* ─── RÉSULTAT ─── */
+  function showResult() {
+    refreshBanner();
+    buildCorrTable();
+    showScreen('screen-result');
+  }
+
+  function refreshBanner() {
+    const counted = allBoxes.reduce((s, b) => s + b.count, 0);
+    const diff    = counted - totalExpected;
+    document.getElementById('result-banner').className = 'result-banner ' + (diff === 0 ? 'ok' : 'ko');
+    document.getElementById('result-icon').textContent = diff === 0 ? '✅' : (diff > 0 ? '⚠️' : '❌');
+    document.getElementById('result-title').textContent = diff === 0 ? 'COMPTAGE PARFAIT' : diff > 0 ? 'SURPLUS DÉTECTÉ' : 'MANQUANT DÉTECTÉ';
+    document.getElementById('result-sub').textContent =
+      diff === 0 ? `${totalBoxes} cartons — tout est conforme.`
+                 : `Écart de ${Math.abs(diff)} article${Math.abs(diff)>1?'s':''} par rapport à l'attendu.`;
+    document.getElementById('res-expected').textContent = totalExpected;
+    document.getElementById('res-counted').textContent  = counted;
+    const badge = document.getElementById('diff-badge');
+    if (diff === 0)       { badge.className = 'diff-badge zero';  badge.textContent = '± 0 article — Conforme'; }
+    else if (diff > 0)    { badge.className = 'diff-badge plus';  badge.textContent = `+ ${diff} article${diff>1?'s':''} en surplus`; }
+    else                  { badge.className = 'diff-badge minus'; badge.textContent = `− ${Math.abs(diff)} article${Math.abs(diff)>1?'s':''} manquant${Math.abs(diff)>1?'s':''}`; }
+    document.getElementById('result-banner').style.animation = 'popIn .35s ease';
+  }
+
+  /* ─── TABLEAU CORRECTION ─── */
+  function buildCorrTable() {
+    const grid = document.getElementById('corr-grid');
+    grid.innerHTML = `
+      <div class="corr-thead">
+        <div>Carton</div><div>Pile</div><div>Articles</div><div>Action</div>
+      </div>`;
+    allBoxes.forEach(b => {
+      const row = document.createElement('div');
+      row.className = 'corr-row' + (corrValidated[b.boxNum] ? ' validated' : '');
+      row.id = `row-${b.boxNum}`;
+      row.innerHTML = `
+        <div><span class="corr-num">C${b.boxNum}</span></div>
+        <div><span class="corr-pile">P${b.pileNum}</span></div>
+        <div>
+          <input class="corr-input ${corrValidated[b.boxNum] ? 'validated-input' : ''}"
+            id="ci-${b.boxNum}" type="number" value="${b.count}" min="0"
+            oninput="onCorrInput(${b.boxNum})"
+            onkeydown="if(event.key==='Enter') validateBox(${b.boxNum})">
+        </div>
+        <div>
+          <button class="corr-val-btn ${corrValidated[b.boxNum] ? 'done' : ''}"
+            id="vb-${b.boxNum}" onclick="validateBox(${b.boxNum})">
+            ${corrValidated[b.boxNum] ? '✓ OK' : 'Valider'}
+          </button>
+        </div>`;
+      grid.appendChild(row);
+    });
+    updateCorrInfo();
+  }
+
+  function onCorrInput(boxNum) {
+    const input    = document.getElementById(`ci-${boxNum}`);
+    const original = allBoxes.find(b => b.boxNum === boxNum).count;
+    const isDiff   = parseInt(input.value) !== original;
+    input.className = isDiff ? 'corr-input changed' : (corrValidated[boxNum] ? 'corr-input validated-input' : 'corr-input');
+    if (corrValidated[boxNum]) {
+      corrValidated[boxNum] = false;
+      const btn = document.getElementById(`vb-${boxNum}`);
+      btn.className = 'corr-val-btn reval'; btn.textContent = '↻ Re-valider';
+      document.getElementById(`row-${boxNum}`).className = 'corr-row modified';
+    }
+    updateCorrInfo();
+  }
+
+  function validateBox(boxNum) {
+    const input  = document.getElementById(`ci-${boxNum}`);
+    const newVal = parseInt(input.value);
+    if (isNaN(newVal) || newVal < 0) { shake(input); return; }
+    allBoxes.find(b => b.boxNum === boxNum).count = newVal;
+    input.className = 'corr-input validated-input';
+    corrValidated[boxNum] = true;
+    const btn = document.getElementById(`vb-${boxNum}`);
+    btn.className = 'corr-val-btn done'; btn.textContent = '✓ OK';
+    document.getElementById(`row-${boxNum}`).className = 'corr-row validated';
+    updateCorrInfo();
+  }
+
+  function recalcFromCorrections() {
+    // Reconstruire les piles
+    piles = [];
+    allBoxes.forEach(b => {
+      let pile = piles.find(p => p.pileNum === b.pileNum);
+      if (!pile) { pile = { pileNum: b.pileNum, boxes: [], total: 0 }; piles.push(pile); }
+      pile.boxes = pile.boxes.filter(x => x.boxNum !== b.boxNum);
+      pile.boxes.push({ boxNum: b.boxNum, count: b.count });
+      pile.total = pile.boxes.reduce((s, x) => s + x.count, 0);
+    });
+    refreshBanner();
+  }
+
+  function updateCorrInfo() {
+    const v = Object.values(corrValidated).filter(Boolean).length;
+    document.getElementById('corr-info').textContent = `${v} / ${allBoxes.length} validé(s)`;
+  }
+
+  function toggleCorrection() {
+    document.getElementById('corr-toggle').classList.toggle('open');
+    document.getElementById('corr-table').classList.toggle('open');
+  }
+
+  /* ─── UTILS ─── */
+  function restart() {
+    document.getElementById('input-cartons').value = '';
+    document.getElementById('input-articles-total').value = '';
+    showScreen('screen-setup');
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'screen-count') setTimeout(() => document.getElementById('input-box-count').focus(), 100);
+  }
+
+  function shake(el) {
+    el.style.animation = 'none'; el.offsetHeight;
+    el.style.animation = 'shake .35s ease';
+    setTimeout(() => el.style.animation = '', 400);
+  }
+
+function renderStackVisual() {
+  const container = document.getElementById('stack-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  piles.forEach(pile => {
+    const wrapper = document.createElement('div');
+
+    const stack = document.createElement('div');
+    stack.className = 'stack';
+
+    pile.boxes.forEach(box => {
+      const el = document.createElement('div');
+      el.className = 'stack-box';
+      el.textContent = box.boxNum;
+      stack.appendChild(el);
+    });
+
+    const label = document.createElement('div');
+    label.className = 'stack-label';
+    label.textContent = 'P' + pile.pileNum;
+
+    wrapper.appendChild(stack);
+    wrapper.appendChild(label);
+
+    container.appendChild(wrapper);
+  });
+}
+
+</script>
+
+<div class="stack-visual">
+  <div id="stack-container"></div>
+</div>
+
+</body>
+</html>

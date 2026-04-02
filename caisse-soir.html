@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcul de Caisse</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  [data-theme="dark"] {
+    --bg: #0d0f0e; --surface: #161a18; --surface2: #1e2422;
+    --border: #2a3030; --accent: #00e090; --accent2: #ff4d6d;
+    --warn: #ffb830; --text: #e8ede9; --muted: #6b7b72;
+    --btn-text: #0d0f0e;
+  }
+  [data-theme="light"] {
+    --bg: #f2f5f2; --surface: #ffffff; --surface2: #eaeeea;
+    --border: #cdd6ce; --accent: #008f5c; --accent2: #d12f50;
+    --warn: #b87000; --text: #1a201c; --muted: #6e8275;
+    --btn-text: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh; display: flex;
+    align-items: flex-start; justify-content: center;
+    padding: 32px 16px 80px;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .app { width: 100%; max-width: 520px; }
+
+  header {
+    margin-bottom: 36px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .header-left::before {
+    content: '◈'; font-size: 11px; color: var(--accent);
+    display: block; margin-bottom: 8px; letter-spacing: 4px;
+  }
+  h1 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 11px; color: var(--muted); margin-top: 8px; letter-spacing: 2px; text-transform: uppercase; }
+
+  .theme-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 50%; width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 20px; flex-shrink: 0; margin-top: 2px;
+    transition: border-color 0.2s, transform 0.25s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .theme-btn:hover { border-color: var(--accent); transform: rotate(25deg); }
+
+  .progress { display: flex; gap: 6px; margin-bottom: 36px; }
+  .progress-dot { height: 3px; flex: 1; background: var(--border); border-radius: 2px; transition: background 0.4s; }
+  .progress-dot.active { background: var(--accent); }
+  .progress-dot.done   { background: var(--accent); opacity: 0.35; }
+
+  .step { display: none; animation: fadeIn 0.3s ease; }
+  .step.visible { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  .step-label { font-size: 10px; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
+  .step-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; line-height: 1.2; }
+  .step-desc  { font-size: 12px; color: var(--muted); margin-bottom: 24px; line-height: 1.7; }
+
+  .input-group { margin-bottom: 20px; }
+  .input-group label {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; color: var(--muted); letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .input-group label .badge {
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 4px; font-size: 10px; color: var(--accent);
+  }
+  input[type="number"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 24px; font-weight: 500; padding: 16px 20px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s; -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,200,130,0.12); }
+  .input-hint { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: right; }
+
+  /* ── BILL CARDS ── */
+  .bills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .bill-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 12px; transition: border-color 0.2s;
+  }
+  .bill-card:focus-within { border-color: var(--accent); }
+  .bill-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .bill-label-text { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .bill-denom { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--warn); }
+
+  .bill-controls { display: flex; align-items: stretch; height: 36px; }
+  .spin-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); width: 34px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; line-height: 1; flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .spin-btn.down { border-radius: 6px 0 0 6px; }
+  .spin-btn.up   { border-radius: 0 6px 6px 0; }
+  .spin-btn:hover { background: var(--accent); color: var(--btn-text); border-color: var(--accent); }
+  .spin-btn:active { opacity: 0.75; }
+
+  input.bill-input {
+    border: 1px solid var(--border); border-left: none; border-right: none;
+    border-radius: 0; background: var(--surface2);
+    font-size: 17px; padding: 0; height: 36px; width: 54px;
+    text-align: center; flex-shrink: 0;
+  }
+  input.bill-input:focus { border-color: var(--border); box-shadow: none; background: var(--surface2); }
+
+  .bill-subtotal { font-size: 11px; color: var(--accent); text-align: right; margin-top: 8px; }
+
+  .running-total {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 20px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px;
+  }
+  .running-total .rt-label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  .running-total .rt-value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+
+  .btn {
+    width: 100%; background: var(--accent); color: var(--btn-text);
+    border: none; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+    padding: 18px; cursor: pointer; letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { transform: scale(0.98); }
+  .btn.danger { background: var(--accent2); color: #fff; }
+  .btn.secondary {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+  }
+  .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-group { display: flex; gap: 10px; }
+  .btn-group .btn { flex: 1; }
+
+  .result-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+  .result-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .result-line:last-child { border-bottom: none; }
+  .result-line .rl-label { color: var(--muted); }
+  .result-line .rl-value { font-weight: 500; font-size: 14px; }
+  .result-line.highlight .rl-label { color: var(--text); font-size: 14px; font-weight: 500; }
+  .result-line.highlight .rl-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; }
+  .result-line.deduct .rl-label { color: var(--muted); }
+  .result-line.deduct .rl-value { color: var(--accent2); }
+  .positive { color: var(--accent)  !important; }
+  .negative { color: var(--accent2) !important; }
+  .equal    { color: var(--warn)    !important; }
+
+  .alert-box { border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: flex; gap: 16px; align-items: flex-start; }
+  .alert-box.ok   { background: rgba(0,200,130,0.07); border: 1px solid rgba(0,200,130,0.3); }
+  .alert-box.warn { background: rgba(255,184,48,0.07); border: 1px solid rgba(255,184,48,0.3); }
+  .alert-box.bad  { background: rgba(255,77,109,0.09); border: 1px solid rgba(255,77,109,0.4); }
+  .alert-icon { font-size: 24px; line-height: 1; flex-shrink: 0; }
+  .alert-text .at-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .alert-text .at-body  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .recheck-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
+  .recheck-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .recheck-item:last-child { border-bottom: none; }
+  .recheck-item .ri-label { color: var(--muted); }
+  .recheck-item .ri-val   { font-weight: 500; color: var(--warn); }
+
+  .info-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); border-radius: 8px;
+    padding: 12px 16px; font-size: 12px; color: var(--muted);
+    margin-bottom: 20px; line-height: 1.6;
+  }
+  .info-box strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="header-left">
+      <h1>CAISSE <span>SOIR</span></h1>
+      <p class="subtitle">Calcul de fermeture · Contrôle caisse</p>
+    </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Inverser les couleurs">☀️</button>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <!-- ÉTAPE 1 : Total attendu -->
+  <div class="step visible" id="step-1">
+    <p class="step-label">Étape 01</p>
+    <h2 class="step-title">Total attendu<br>en caisse</h2>
+    <p class="step-desc">Entrez le montant théorique du jour (depuis votre logiciel de caisse ou rapport de vente). Les valeurs négatives sont acceptées ici.</p>
+    <div class="input-group">
+      <label>Montant attendu <span class="badge">€</span></label>
+      <input type="number" id="total-attendu" placeholder="0.00" step="0.01">
+    </div>
+    <button class="btn" onclick="goFromStep1()">Continuer →</button>
+  </div>
+
+  <!-- ÉTAPE 1b : Fond de caisse de départ -->
+  <div class="step" id="step-1b">
+    <p class="step-label">Étape 01b</p>
+    <h2 class="step-title">Fond de caisse<br>de départ</h2>
+    <p class="step-desc">Entrez le montant du fond de caisse mis en place ce matin. Il sera <strong>déduit</strong> du total compté car ce n'est pas une recette.</p>
+    <div class="info-box">
+      <strong>Exemple :</strong> si vous avez mis 150 € de monnaie en caisse ce matin, entrez 150. Ce montant sera retiré du total final pour ne garder que les ventes nettes.
+    </div>
+    <div class="input-group">
+      <label>Fond de caisse <span class="badge">€</span></label>
+      <input type="number" id="fond-caisse" placeholder="0.00" step="0.01" min="0" value="0">
+      <p class="input-hint">Laisser à 0 si aucun fond fixe</p>
+    </div>
+    <button class="btn" onclick="goFromStep1b()">Continuer →</button>
+  </div>
+
+  <!-- ÉTAPE 2 : Ajout (seulement si total négatif) -->
+  <div class="step" id="step-2">
+    <p class="step-label">Étape 02</p>
+    <h2 class="step-title">Ajout en caisse<br>dans la journée</h2>
+    <p class="step-desc">Le total attendu est négatif. Entrez le montant que vous avez ajouté en cours de journée (renfort, apport…). Il sera soustrait du comptage.</p>
+    <div class="input-group">
+      <label>Montant ajouté <span class="badge">€</span></label>
+      <input type="number" id="montant-ajoute" placeholder="0.00" step="0.01" min="0" value="0">
+    </div>
+    <button class="btn" onclick="goStep3()">Continuer →</button>
+  </div>
+
+  <!-- ÉTAPE 3 : Billets avec spinners -->
+  <div class="step" id="step-3">
+    <p class="step-label">Étape 03</p>
+    <h2 class="step-title">Comptage<br>des billets</h2>
+    <p class="step-desc">Utilisez les flèches ▲▼ ou saisissez directement le nombre de billets par coupure.</p>
+
+    <div class="bills-grid">
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">50 €</span>
+        </div>
+        <div class="bill-controls">
+          <button class="spin-btn down" onmousedown="startSpin('b50',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b50',-1)" ontouchend="stopSpin()">▼</button>
+          <input class="bill-input" type="number" id="b50" placeholder="0" min="0" oninput="updateRunning()">
+          <button class="spin-btn up"   onmousedown="startSpin('b50', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b50', 1)" ontouchend="stopSpin()">▲</button>
+        </div>
+        <div class="bill-subtotal" id="sub-b50">= 0,00 €</div>
+      </div>
+
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">20 €</span>
+        </div>
+        <div class="bill-controls">
+          <button class="spin-btn down" onmousedown="startSpin('b20',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b20',-1)" ontouchend="stopSpin()">▼</button>
+          <input class="bill-input" type="number" id="b20" placeholder="0" min="0" oninput="updateRunning()">
+          <button class="spin-btn up"   onmousedown="startSpin('b20', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b20', 1)" ontouchend="stopSpin()">▲</button>
+        </div>
+        <div class="bill-subtotal" id="sub-b20">= 0,00 €</div>
+      </div>
+
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">10 €</span>
+        </div>
+        <div class="bill-controls">
+          <button class="spin-btn down" onmousedown="startSpin('b10',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b10',-1)" ontouchend="stopSpin()">▼</button>
+          <input class="bill-input" type="number" id="b10" placeholder="0" min="0" oninput="updateRunning()">
+          <button class="spin-btn up"   onmousedown="startSpin('b10', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b10', 1)" ontouchend="stopSpin()">▲</button>
+        </div>
+        <div class="bill-subtotal" id="sub-b10">= 0,00 €</div>
+      </div>
+
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">5 €</span>
+        </div>
+        <div class="bill-controls">
+          <button class="spin-btn down" onmousedown="startSpin('b5',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b5',-1)" ontouchend="stopSpin()">▼</button>
+          <input class="bill-input" type="number" id="b5" placeholder="0" min="0" oninput="updateRunning()">
+          <button class="spin-btn up"   onmousedown="startSpin('b5', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b5', 1)" ontouchend="stopSpin()">▲</button>
+        </div>
+        <div class="bill-subtotal" id="sub-b5">= 0,00 €</div>
+      </div>
+    </div>
+
+    <div class="running-total">
+      <span class="rt-label">Sous-total billets</span>
+      <span class="rt-value" id="rt-billets">0,00 €</span>
+    </div>
+    <button class="btn" onclick="goStep4()">Continuer →</button>
+  </div>
+
+  <!-- ÉTAPE 4 : Pièces + Fond supplémentaire -->
+  <div class="step" id="step-4">
+    <p class="step-label">Étape 04</p>
+    <h2 class="step-title">Pièces &amp;<br>fond supplémentaire</h2>
+    <p class="step-desc">Entrez le total de toutes vos pièces, puis un éventuel fond supplémentaire (apport ponctuel à additionner au total compté).</p>
+
+    <div class="input-group">
+      <label>Total pièces <span class="badge">€</span></label>
+      <input type="number" id="total-pieces" placeholder="0.00" step="0.01" min="0" oninput="updateRunning()">
+    </div>
+
+    <div class="input-group">
+      <label>Fond supplémentaire <span class="badge">+</span></label>
+      <input type="number" id="fond-sup" placeholder="0.00" step="0.01" min="0" value="0" oninput="updateRunning()">
+      <p class="input-hint">Additionné au total compté avant comparaison</p>
+    </div>
+
+    <div class="running-total">
+      <span class="rt-label">Total billets + pièces + fond sup.</span>
+      <span class="rt-value" id="rt-total">— €</span>
+    </div>
+    <button class="btn" onclick="goResult()">Voir le résultat →</button>
+  </div>
+
+  <!-- RÉSULTAT -->
+  <div class="step" id="step-result">
+    <p class="step-label">Résultat</p>
+    <h2 class="step-title">Bilan<br>de caisse</h2>
+    <div id="alert-container"></div>
+    <div class="result-box" id="result-details"></div>
+    <div id="recheck-section" style="display:none">
+      <p class="step-desc" style="margin-bottom:16px">⚠️ Revérifiez les quantités suivantes avant de valider :</p>
+      <div class="recheck-list" id="recheck-list"></div>
+      <div class="btn-group">
+        <button class="btn secondary" onclick="goStep3()">← Recorriger</button>
+        <button class="btn danger" onclick="confirmRecheck()">Confirmer quand même</button>
+      </div>
+    </div>
+    <div id="confirm-section" style="display:none">
+      <button class="btn secondary" style="width:100%;margin-top:8px" onclick="resetAll()">↺ Nouvelle caisse</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let totalSteps = 6;
+  let state = {};
+  let spinTimer = null;
+  let isDark = true;
+
+  /* THEME */
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+  }
+
+  /* HELPERS */
+  function fmt(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
+  function val(id, fallback = 0) {
+    const v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? fallback : v;
+  }
+  function blockNegative(e) {
+    if (e.target.id === 'total-attendu') return;
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v < 0) e.target.value = 0;
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type="number"]').forEach(inp => inp.addEventListener('input', blockNegative));
+  });
+
+  /* SPINNERS avec répétition au maintien */
+  function spin(id, delta) {
+    const inp = document.getElementById(id);
+    const cur = parseInt(inp.value) || 0;
+    inp.value = Math.max(0, cur + delta);
+    updateRunning();
+  }
+  function startSpin(id, delta) {
+    spin(id, delta);
+    stopSpin();
+    spinTimer = setTimeout(() => {
+      spinTimer = setInterval(() => spin(id, delta), 80);
+    }, 400);
+  }
+  function stopSpin() {
+    clearTimeout(spinTimer);
+    clearInterval(spinTimer);
+    spinTimer = null;
+  }
+
+  /* PROGRESS */
+  function renderProgress(current) {
+    const p = document.getElementById('progress');
+    p.innerHTML = '';
+    for (let i = 1; i <= totalSteps; i++) {
+      const d = document.createElement('div');
+      d.className = 'progress-dot' + (i < current ? ' done' : i === current ? ' active' : '');
+      p.appendChild(d);
+    }
+  }
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('visible'));
+    document.getElementById('step-' + n)?.classList.add('visible');
+    const num = typeof n === 'number' ? n : totalSteps;
+    renderProgress(num);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* NAVIGATION */
+  function goFromStep1() {
+    const raw = document.getElementById('total-attendu').value.trim();
+    if (raw === '') { alert('Veuillez entrer un montant.'); return; }
+    const ta = parseFloat(raw);
+    if (isNaN(ta)) { alert('Montant invalide.'); return; }
+    state.totalAttendu = ta;
+    showStep('1b');
+  }
+
+  function goFromStep1b() {
+    const fc = val('fond-caisse');
+    if (fc < 0) { alert('Montant invalide.'); return; }
+    state.fondCaisse = fc;
+    if (state.totalAttendu < 0) {
+      totalSteps = 6;
+      showStep(2);
+    } else {
+      totalSteps = 5;
+      state.montantAjoute = 0;
+      showStep(3);
+      updateRunning();
+    }
+  }
+
+  function goStep3() {
+    const raw = document.getElementById('montant-ajoute').value.trim();
+    const v = raw === '' ? 0 : parseFloat(raw);
+    if (isNaN(v) || v < 0) { alert('Montant invalide.'); return; }
+    state.montantAjoute = v;
+    showStep(3);
+    updateRunning();
+  }
+
+  function goStep4() {
+    const b50 = val('b50'), b20 = val('b20'), b10 = val('b10'), b5 = val('b5');
+    if ([b50,b20,b10,b5].some(v => v < 0)) { alert('Quantités invalides.'); return; }
+    state.b50 = b50; state.b20 = b20; state.b10 = b10; state.b5 = b5;
+    state.totalBillets = b50*50 + b20*20 + b10*10 + b5*5;
+    showStep(4);
+    updateRunning();
+  }
+
+  /* RUNNING TOTALS */
+  function updateRunning() {
+    const b50 = val('b50'), b20 = val('b20'), b10 = val('b10'), b5 = val('b5');
+    const billets = b50*50 + b20*20 + b10*10 + b5*5;
+    const subs = { b50: b50*50, b20: b20*20, b10: b10*10, b5: b5*5 };
+    for (const [id, v] of Object.entries(subs)) {
+      const el = document.getElementById('sub-' + id);
+      if (el) el.textContent = '= ' + fmt(v);
+    }
+    const rtb = document.getElementById('rt-billets');
+    if (rtb) rtb.textContent = fmt(billets);
+
+    const pieces  = val('total-pieces');
+    const fondSup = val('fond-sup');
+    const rtt = document.getElementById('rt-total');
+    if (rtt) rtt.textContent = fmt(billets + pieces + fondSup);
+  }
+
+  /* RESULT */
+  function goResult() {
+    const pieces  = val('total-pieces');
+    const fondSup = val('fond-sup');
+    if (pieces < 0) { alert('Montant invalide.'); return; }
+    state.totalPieces = pieces;
+    state.fondSup = fondSup;
+
+    const totalComptage = state.totalBillets + state.totalPieces + state.fondSup;
+    const totalNet = totalComptage - state.montantAjoute - state.fondCaisse;
+    const difference = totalNet - state.totalAttendu;
+
+    state.totalComptage = totalComptage;
+    state.totalNet = totalNet;
+    state.difference = difference;
+
+    renderResult(difference);
+    showStep('result');
+  }
+
+  function renderResult(diff) {
+    const ac = document.getElementById('alert-container');
+    let alertHtml;
+    if (diff > 0.005) {
+      alertHtml = `<div class="alert-box ok"><div class="alert-icon">✅</div><div class="alert-text">
+        <div class="at-title">Excédent de caisse</div>
+        <div class="at-body">Il y a <strong>${fmt(diff)}</strong> de plus que prévu. Bonne journée !</div>
+      </div></div>`;
+    } else if (Math.abs(diff) <= 0.005) {
+      alertHtml = `<div class="alert-box warn"><div class="alert-icon">⚠️</div><div class="alert-text">
+        <div class="at-title" style="color:var(--warn)">Caisse exacte — À vérifier</div>
+        <div class="at-body">Le compte est juste. Vérifiez quand même chaque quantité ci-dessous.</div>
+      </div></div>`;
+    } else {
+      alertHtml = `<div class="alert-box bad"><div class="alert-icon">🚨</div><div class="alert-text">
+        <div class="at-title" style="color:var(--accent2)">MANQUE EN CAISSE</div>
+        <div class="at-body">Il manque <strong style="color:var(--accent2)">${fmt(Math.abs(diff))}</strong> ! Revérifiez chaque poste avant de valider.</div>
+      </div></div>`;
+    }
+    ac.innerHTML = alertHtml;
+
+    const cls  = diff > 0.005 ? 'positive' : diff < -0.005 ? 'negative' : 'equal';
+    const sign = diff > 0.005 ? '+' : '';
+
+    const ajoutLine   = state.montantAjoute > 0 ? `<div class="result-line deduct"><span class="rl-label">Ajout journée déduit</span><span class="rl-value">− ${fmt(state.montantAjoute)}</span></div>` : '';
+    const fondLine    = state.fondCaisse   > 0 ? `<div class="result-line deduct"><span class="rl-label">Fond de caisse déduit</span><span class="rl-value">− ${fmt(state.fondCaisse)}</span></div>` : '';
+    const fondSupLine = state.fondSup      > 0 ? `<div class="result-line"><span class="rl-label">Fond supplémentaire</span><span class="rl-value positive">+ ${fmt(state.fondSup)}</span></div>` : '';
+
+    document.getElementById('result-details').innerHTML = `
+      <div class="result-line"><span class="rl-label">Total attendu (théorique)</span><span class="rl-value">${fmt(state.totalAttendu)}</span></div>
+      <div class="result-line"><span class="rl-label">Billets 50€ × ${state.b50}</span><span class="rl-value">${fmt(state.b50*50)}</span></div>
+      <div class="result-line"><span class="rl-label">Billets 20€ × ${state.b20}</span><span class="rl-value">${fmt(state.b20*20)}</span></div>
+      <div class="result-line"><span class="rl-label">Billets 10€ × ${state.b10}</span><span class="rl-value">${fmt(state.b10*10)}</span></div>
+      <div class="result-line"><span class="rl-label">Billets 5€ × ${state.b5}</span><span class="rl-value">${fmt(state.b5*5)}</span></div>
+      <div class="result-line"><span class="rl-label">Total pièces</span><span class="rl-value">${fmt(state.totalPieces)}</span></div>
+      ${fondSupLine}
+      <div class="result-line"><span class="rl-label">Total compté brut</span><span class="rl-value">${fmt(state.totalComptage)}</span></div>
+      ${ajoutLine}${fondLine}
+      <div class="result-line"><span class="rl-label">Total net (après déductions)</span><span class="rl-value">${fmt(state.totalNet)}</span></div>
+      <div class="result-line highlight"><span class="rl-label">Écart</span><span class="rl-value ${cls}">${sign}${fmt(diff)}</span></div>
+    `;
+
+    const rs = document.getElementById('recheck-section');
+    const cs = document.getElementById('confirm-section');
+    if (diff <= 0.005) {
+      rs.style.display = 'block'; cs.style.display = 'none';
+      const rf  = state.fondCaisse   > 0 ? `<div class="recheck-item"><span class="ri-label">Fond de caisse</span><span class="ri-val">− ${fmt(state.fondCaisse)}</span></div>` : '';
+      const ra  = state.montantAjoute > 0 ? `<div class="recheck-item"><span class="ri-label">Ajout journée</span><span class="ri-val">− ${fmt(state.montantAjoute)}</span></div>` : '';
+      const rfs = state.fondSup      > 0 ? `<div class="recheck-item"><span class="ri-label">Fond supplémentaire</span><span class="ri-val">+ ${fmt(state.fondSup)}</span></div>` : '';
+      document.getElementById('recheck-list').innerHTML = `
+        <div class="recheck-item"><span class="ri-label">Billets 50€</span><span class="ri-val">${state.b50} × 50€ = ${fmt(state.b50*50)}</span></div>
+        <div class="recheck-item"><span class="ri-label">Billets 20€</span><span class="ri-val">${state.b20} × 20€ = ${fmt(state.b20*20)}</span></div>
+        <div class="recheck-item"><span class="ri-label">Billets 10€</span><span class="ri-val">${state.b10} × 10€ = ${fmt(state.b10*10)}</span></div>
+        <div class="recheck-item"><span class="ri-label">Billets 5€</span><span class="ri-val">${state.b5} × 5€ = ${fmt(state.b5*5)}</span></div>
+        <div class="recheck-item"><span class="ri-label">Total pièces</span><span class="ri-val">${fmt(state.totalPieces)}</span></div>
+        ${rfs}${ra}${rf}
+      `;
+    } else {
+      rs.style.display = 'none'; cs.style.display = 'block';
+    }
+  }
+
+  function confirmRecheck() {
+    document.getElementById('recheck-section').style.display = 'none';
+    document.getElementById('confirm-section').style.display = 'block';
+  }
+
+  function resetAll() {
+    state = {}; totalSteps = 6;
+    ['total-attendu','fond-caisse','montant-ajoute','b50','b20','b10','b5','total-pieces','fond-sup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.value = ['fond-caisse','fond-sup','montant-ajoute'].includes(id) ? '0' : '';
+    });
+    updateRunning();
+    showStep(1);
+  }
+
+  renderProgress(1);
+</script>
+</body>
+</html>
