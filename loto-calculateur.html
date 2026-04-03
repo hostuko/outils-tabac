@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculateur Loto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root, [data-theme="dark"] {
+      --bg:      #0f1117;
+      --surface: #181c27;
+      --border:  #2a2f42;
+      --accent:  #f5c842;
+      --accent2: #4af0b0;
+      --text:    #e8eaf0;
+      --muted:   #6b7194;
+      --danger:  #ff6b6b;
+    }
+
+    [data-theme="light"] {
+      --bg:      #f4f5f8;
+      --surface: #ffffff;
+      --border:  #dde0ea;
+      --accent:  #c49b00;
+      --accent2: #00956b;
+      --text:    #1a1d2e;
+      --muted:   #7a7f9a;
+      --danger:  #d93535;
+    }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 64px;
+      transition: background .25s, color .25s;
+    }
+
+    header {
+      width: 100%; max-width: 520px;
+      display: flex; align-items: center;
+      gap: 12px; margin-bottom: 36px;
+    }
+
+    .logo {
+      width: 40px; height: 40px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 18px; font-weight: 800;
+      color: #0f1117; flex-shrink: 0;
+    }
+
+    header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px; font-weight: 800;
+      letter-spacing: .5px; flex: 1;
+    }
+
+    header span {
+      font-size: 12px; color: var(--muted);
+      display: block; margin-top: 2px; font-weight: 400;
+    }
+
+    .theme-toggle {
+      flex-shrink: 0;
+      width: 44px; height: 24px;
+      background: var(--border);
+      border-radius: 999px;
+      border: none; cursor: pointer;
+      position: relative;
+      transition: background .25s;
+    }
+
+    .theme-toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      transition: transform .25s, background .25s;
+    }
+
+    [data-theme="light"] .theme-toggle::after { transform: translateX(20px); }
+
+    .theme-toggle .icon {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .theme-toggle .icon-moon { left: 5px; }
+    .theme-toggle .icon-sun  { right: 4px; }
+    [data-theme="light"] .theme-toggle .icon-moon { opacity: .3; }
+    [data-theme="dark"]  .theme-toggle .icon-sun  { opacity: .3; }
+
+    .main { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 16px; }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: background .25s, border-color .25s;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--accent);
+      padding: 14px 18px 10px;
+      border-bottom: 1px solid var(--border);
+      transition: color .25s, border-color .25s;
+    }
+
+    .field {
+      display: flex; align-items: center;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+      transition: border-color .25s;
+    }
+
+    .field label {
+      flex: 1; font-size: 13px;
+      color: var(--muted); white-space: nowrap;
+    }
+
+    .field input {
+      width: 140px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 14px; color: var(--text);
+      text-align: right; outline: none;
+      transition: border-color .2s, color .25s;
+      -moz-appearance: textfield;
+    }
+
+    .field input::-webkit-inner-spin-button,
+    .field input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .field input:focus { border-color: var(--accent); }
+    .field input::placeholder { color: var(--border); }
+
+    /* Highlight active field row */
+    .field:focus-within { background: rgba(245,200,66,.03); }
+    [data-theme="light"] .field:focus-within { background: rgba(196,155,0,.04); }
+
+    .inner-sep {
+      height: 1px;
+      background: var(--border);
+      margin: 0 18px;
+      opacity: .5;
+    }
+
+    .result-row {
+      display: flex; align-items: center;
+      padding: 13px 18px; gap: 12px;
+    }
+
+    .result-row .rl { flex: 1; font-size: 12px; color: var(--muted); }
+    .result-row .rv { font-size: 15px; font-weight: 500; color: var(--text); }
+
+    .result-row.accent { background: rgba(196,155,0,.07); }
+    [data-theme="dark"] .result-row.accent { background: rgba(245,200,66,.06); }
+    .result-row.accent .rl { color: var(--accent); font-weight: 500; }
+    .result-row.accent .rv { color: var(--accent); }
+
+    .result-row.hero {
+      background: rgba(0,149,107,.07);
+      padding: 16px 18px;
+    }
+    [data-theme="dark"] .result-row.hero {
+      background: linear-gradient(135deg, rgba(74,240,176,.1), rgba(74,240,176,.04));
+    }
+
+    .result-row.hero .rl {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--accent2);
+    }
+
+    .result-row.hero .rv {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px; font-weight: 800;
+      color: var(--accent2);
+    }
+
+    .negative { color: var(--danger) !important; }
+
+    .btn-reset {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+
+    .btn-reset:hover { border-color: var(--muted); color: var(--text); }
+    .btn-reset:active { transform: scale(.98); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">L</div>
+  <div style="flex:1">
+    <h1>Calculateur Loto</h1>
+    <span>Calcul des différences journalières</span>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Changer le thème">
+    <span class="icon icon-moon">🌙</span>
+    <span class="icon icon-sun">☀️</span>
+  </button>
+</header>
+
+<div class="main">
+
+  <!-- BLOC LOTO -->
+  <div class="section">
+    <div class="section-title">Loto</div>
+
+    <div class="field">
+      <label>Loto</label>
+      <input type="number" id="loto" placeholder="0.00" step="0.01" inputmode="decimal" />
+    </div>
+
+    <div class="field">
+      <label>Annulation Loto</label>
+      <input type="number" id="annulationLoto" placeholder="0.00" step="0.01" inputmode="decimal" />
+    </div>
+
+    <div class="result-row accent">
+      <span class="rl">Total Loto</span>
+      <span class="rv" id="totalLoto">—</span>
+    </div>
+
+    <div class="inner-sep"></div>
+
+    <div class="field">
+      <label>Loto Caisse</label>
+      <input type="number" id="caisse" placeholder="0.00" step="0.01" inputmode="decimal" />
+    </div>
+
+    <div class="result-row hero">
+      <span class="rl">Loto à Taper</span>
+      <span class="rv" id="lotoATaper">—</span>
+    </div>
+  </div>
+
+  <!-- BLOC PAIEMENT LOTO -->
+  <div class="section">
+    <div class="section-title">Paiement Loto</div>
+
+    <div class="field">
+      <label>Paiement Loto</label>
+      <input type="number" id="paiement" placeholder="0.00" step="0.01" inputmode="decimal" />
+    </div>
+
+    <div class="field">
+      <label>Annulations</label>
+      <input type="number" id="annulations" placeholder="0.00" step="0.01" inputmode="decimal" />
+    </div>
+
+    <div class="result-row accent">
+      <span class="rl">Total Paiement Loto</span>
+      <span class="rv" id="totalPaiement">—</span>
+    </div>
+  </div>
+
+  <button class="btn-reset" onclick="resetAll()">Réinitialiser</button>
+
+</div>
+
+<script>
+  // ─── Ordre de tabulation des champs ───
+  const fieldOrder = ['loto', 'annulationLoto', 'caisse', 'paiement', 'annulations'];
+
+  const fmt = v => isNaN(v) ? '—' : v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+  const val = id => parseFloat(document.getElementById(id).value) || 0;
+
+  function update() {
+    const totalLoto     = val('loto') - val('annulationLoto');
+    const lotoATaper    = totalLoto - val('caisse');
+    const totalPaiement = val('paiement') - val('annulations');
+
+    const set = (id, v) => {
+      const el = document.getElementById(id);
+      el.textContent = fmt(v);
+      el.classList.toggle('negative', v < 0);
+    };
+
+    set('totalLoto',     totalLoto);
+    set('lotoATaper',    lotoATaper);
+    set('totalPaiement', totalPaiement);
+  }
+
+  // ─── Entrée = champ suivant ───
+  fieldOrder.forEach((id, i) => {
+    const input = document.getElementById(id);
+
+    input.addEventListener('input', update);
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const next = fieldOrder[i + 1];
+        if (next) {
+          document.getElementById(next).focus();
+          document.getElementById(next).select();
+        } else {
+          input.blur(); // dernier champ : ferme le clavier sur mobile
+        }
+      }
+    });
+  });
+
+  function resetAll() {
+    fieldOrder.forEach(id => { document.getElementById(id).value = ''; });
+    ['totalLoto','lotoATaper','totalPaiement'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '—';
+      el.classList.remove('negative');
+    });
+    document.getElementById(fieldOrder[0]).focus();
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  }
+
+  const saved = localStorage.getItem('theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+</script>
+</body>
+</html>
