@@ -220,8 +220,8 @@
     </div>
     <div class="input-group">
       <label>Fond de caisse <span class="badge">€</span></label>
-      <input type="number" id="fond-caisse" placeholder="0.00" step="0.01" min="0" value="0">
-      <p class="input-hint">Laisser à 0 si aucun fond fixe</p>
+      <input type="number" id="fond-caisse" placeholder="0.00" step="0.01" min="0">
+      <p class="input-hint">Laisser vide si aucun fond fixe</p>
     </div>
     <button class="btn" onclick="goFromStep1b()">Continuer →</button>
   </div>
@@ -233,16 +233,16 @@
     <p class="step-desc">Le total attendu est négatif. Entrez le montant que vous avez ajouté en cours de journée (renfort, apport…). Il sera soustrait du comptage.</p>
     <div class="input-group">
       <label>Montant ajouté <span class="badge">€</span></label>
-      <input type="number" id="montant-ajoute" placeholder="0.00" step="0.01" min="0" value="0">
+      <input type="number" id="montant-ajoute" placeholder="0.00" step="0.01" min="0">
     </div>
     <button class="btn" onclick="goStep3()">Continuer →</button>
   </div>
 
-  <!-- ÉTAPE 3 : Billets avec spinners -->
+  <!-- ÉTAPE 3 : Billets + Pièces + Fond supplémentaire (fusionnés) -->
   <div class="step" id="step-3">
     <p class="step-label">Étape 03</p>
-    <h2 class="step-title">Comptage<br>des billets</h2>
-    <p class="step-desc">Utilisez les flèches ▲▼ ou saisissez directement le nombre de billets par coupure.</p>
+    <h2 class="step-title">Comptage<br>billets &amp; pièces</h2>
+    <p class="step-desc">Comptez vos billets avec les flèches ou en saisissant directement, puis entrez le total des pièces et un éventuel fond supplémentaire.</p>
 
     <div class="bills-grid">
       <div class="bill-card">
@@ -250,66 +250,44 @@
           <span class="bill-label-text">Billets</span>
           <span class="bill-denom">50 €</span>
         </div>
-        <div class="bill-controls">
-          <button class="spin-btn down" onmousedown="startSpin('b50',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b50',-1)" ontouchend="stopSpin()">▼</button>
-          <input class="bill-input" type="number" id="b50" placeholder="0" min="0" oninput="updateRunning()">
-          <button class="spin-btn up"   onmousedown="startSpin('b50', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b50', 1)" ontouchend="stopSpin()">▲</button>
-        </div>
+        <div class="bill-controls" id="ctrl-b50"></div>
         <div class="bill-subtotal" id="sub-b50">= 0,00 €</div>
       </div>
-
       <div class="bill-card">
         <div class="bill-top">
           <span class="bill-label-text">Billets</span>
           <span class="bill-denom">20 €</span>
         </div>
-        <div class="bill-controls">
-          <button class="spin-btn down" onmousedown="startSpin('b20',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b20',-1)" ontouchend="stopSpin()">▼</button>
-          <input class="bill-input" type="number" id="b20" placeholder="0" min="0" oninput="updateRunning()">
-          <button class="spin-btn up"   onmousedown="startSpin('b20', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b20', 1)" ontouchend="stopSpin()">▲</button>
-        </div>
+        <div class="bill-controls" id="ctrl-b20"></div>
         <div class="bill-subtotal" id="sub-b20">= 0,00 €</div>
       </div>
-
       <div class="bill-card">
         <div class="bill-top">
           <span class="bill-label-text">Billets</span>
           <span class="bill-denom">10 €</span>
         </div>
-        <div class="bill-controls">
-          <button class="spin-btn down" onmousedown="startSpin('b10',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b10',-1)" ontouchend="stopSpin()">▼</button>
-          <input class="bill-input" type="number" id="b10" placeholder="0" min="0" oninput="updateRunning()">
-          <button class="spin-btn up"   onmousedown="startSpin('b10', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b10', 1)" ontouchend="stopSpin()">▲</button>
-        </div>
+        <div class="bill-controls" id="ctrl-b10"></div>
         <div class="bill-subtotal" id="sub-b10">= 0,00 €</div>
       </div>
-
       <div class="bill-card">
         <div class="bill-top">
           <span class="bill-label-text">Billets</span>
           <span class="bill-denom">5 €</span>
         </div>
-        <div class="bill-controls">
-          <button class="spin-btn down" onmousedown="startSpin('b5',-1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b5',-1)" ontouchend="stopSpin()">▼</button>
-          <input class="bill-input" type="number" id="b5" placeholder="0" min="0" oninput="updateRunning()">
-          <button class="spin-btn up"   onmousedown="startSpin('b5', 1)" onmouseup="stopSpin()" onmouseleave="stopSpin()" ontouchstart="startSpin('b5', 1)" ontouchend="stopSpin()">▲</button>
-        </div>
+        <div class="bill-controls" id="ctrl-b5"></div>
         <div class="bill-subtotal" id="sub-b5">= 0,00 €</div>
       </div>
     </div>
 
-    <div class="running-total">
+    <div class="running-total" style="margin-bottom:20px">
       <span class="rt-label">Sous-total billets</span>
       <span class="rt-value" id="rt-billets">0,00 €</span>
     </div>
-    <button class="btn" onclick="goStep4()">Continuer →</button>
-  </div>
 
-  <!-- ÉTAPE 4 : Pièces + Fond supplémentaire -->
-  <div class="step" id="step-4">
-    <p class="step-label">Étape 04</p>
-    <h2 class="step-title">Pièces &amp;<br>fond supplémentaire</h2>
-    <p class="step-desc">Entrez le total de toutes vos pièces, puis un éventuel fond supplémentaire (apport ponctuel à additionner au total compté).</p>
+    <!-- Séparateur -->
+    <div style="border-top:1px solid var(--border);margin-bottom:20px;position:relative;">
+      <span style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 10px;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">Pièces &amp; divers</span>
+    </div>
 
     <div class="input-group">
       <label>Total pièces <span class="badge">€</span></label>
@@ -318,13 +296,13 @@
 
     <div class="input-group">
       <label>Fond supplémentaire <span class="badge">+</span></label>
-      <input type="number" id="fond-sup" placeholder="0.00" step="0.01" min="0" value="0" oninput="updateRunning()">
-      <p class="input-hint">Additionné au total compté avant comparaison</p>
+      <input type="number" id="fond-sup" placeholder="0.00" step="0.01" min="0" oninput="updateRunning()">
+      <p class="input-hint">Apport ponctuel ajouté au total compté</p>
     </div>
 
     <div class="running-total">
-      <span class="rt-label">Total billets + pièces + fond sup.</span>
-      <span class="rt-value" id="rt-total">— €</span>
+      <span class="rt-label">Total général</span>
+      <span class="rt-value" id="rt-total">0,00 €</span>
     </div>
     <button class="btn" onclick="goResult()">Voir le résultat →</button>
   </div>
@@ -351,7 +329,7 @@
 </div>
 
 <script>
-  let totalSteps = 6;
+  let totalSteps = 5;
   let state = {};
   let spinTimer = null;
   let isDark = true;
@@ -376,9 +354,94 @@
   }
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('input[type="number"]').forEach(inp => inp.addEventListener('input', blockNegative));
+    buildSpinners();
+    setupKeyboardNav();
   });
 
-  /* SPINNERS avec répétition au maintien */
+  /* KEYBOARD NAVIGATION */
+  const STEP3_ORDER = ['b50', 'b20', 'b10', 'b5', 'total-pieces', 'fond-sup'];
+
+  function attachStep3Enter(inp, id) {
+    inp.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const idx = STEP3_ORDER.indexOf(id);
+      const nextId = STEP3_ORDER[idx + 1];
+      if (nextId) {
+        const nextEl = document.getElementById(nextId);
+        if (nextEl) nextEl.focus();
+      }
+    });
+  }
+
+  function setupKeyboardNav() {
+    // Étape 1 : Entrée → continuer
+    document.getElementById('total-attendu').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); goFromStep1(); }
+    });
+    // Étape 1b : Entrée → continuer
+    document.getElementById('fond-caisse').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); goFromStep1b(); }
+    });
+    // Étape 2 : Entrée → continuer
+    document.getElementById('montant-ajoute').addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); goStep3(); }
+    });
+    // Pièces et fond-sup : Entrée passe au suivant (billets attachés dans buildSpinners)
+    ['total-pieces', 'fond-sup'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) attachStep3Enter(el, id);
+    });
+  }
+
+  /* BUILD SPINNER CONTROLS — évite le double-fire mobile en gérant touch séparément */
+  function buildSpinners() {
+    const bills = ['b50','b20','b10','b5'];
+    bills.forEach(id => {
+      const container = document.getElementById('ctrl-' + id);
+      if (!container) return;
+
+      const btnDown = document.createElement('button');
+      btnDown.className = 'spin-btn down';
+      btnDown.textContent = '▼';
+
+      const inp = document.createElement('input');
+      inp.className = 'bill-input';
+      inp.type = 'number';
+      inp.id = id;
+      inp.placeholder = '0';
+      inp.min = '0';
+      inp.addEventListener('input', () => { blockNegative({target: inp}); updateRunning(); });
+      attachStep3Enter(inp, id);
+
+      const btnUp = document.createElement('button');
+      btnUp.className = 'spin-btn up';
+      btnUp.textContent = '▲';
+
+      // Touch-only handler — preventDefault stops the subsequent mousedown
+      function attachSpin(btn, delta) {
+        btn.addEventListener('touchstart', e => {
+          e.preventDefault(); // bloque le mousedown fantôme
+          startSpin(id, delta);
+        }, { passive: false });
+        btn.addEventListener('touchend',   e => { e.preventDefault(); stopSpin(); }, { passive: false });
+        btn.addEventListener('touchcancel',e => { e.preventDefault(); stopSpin(); }, { passive: false });
+        // Mouse (desktop only — sur mobile ces events ne se déclenchent plus grâce à preventDefault)
+        btn.addEventListener('mousedown',  () => startSpin(id, delta));
+        btn.addEventListener('mouseup',    () => stopSpin());
+        btn.addEventListener('mouseleave', () => stopSpin());
+      }
+
+      attachSpin(btnDown, -1);
+      attachSpin(btnUp,    1);
+
+      container.appendChild(btnDown);
+      container.appendChild(inp);
+      container.appendChild(btnUp);
+    });
+  }
+
+  /* SPINNERS */
   function spin(id, delta) {
     const inp = document.getElementById(id);
     const cur = parseInt(inp.value) || 0;
@@ -431,10 +494,10 @@
     if (fc < 0) { alert('Montant invalide.'); return; }
     state.fondCaisse = fc;
     if (state.totalAttendu < 0) {
-      totalSteps = 6;
+      totalSteps = 5;
       showStep(2);
     } else {
-      totalSteps = 5;
+      totalSteps = 4;
       state.montantAjoute = 0;
       showStep(3);
       updateRunning();
@@ -447,15 +510,6 @@
     if (isNaN(v) || v < 0) { alert('Montant invalide.'); return; }
     state.montantAjoute = v;
     showStep(3);
-    updateRunning();
-  }
-
-  function goStep4() {
-    const b50 = val('b50'), b20 = val('b20'), b10 = val('b10'), b5 = val('b5');
-    if ([b50,b20,b10,b5].some(v => v < 0)) { alert('Quantités invalides.'); return; }
-    state.b50 = b50; state.b20 = b20; state.b10 = b10; state.b5 = b5;
-    state.totalBillets = b50*50 + b20*20 + b10*10 + b5*5;
-    showStep(4);
     updateRunning();
   }
 
@@ -479,9 +533,12 @@
 
   /* RESULT */
   function goResult() {
+    const b50 = val('b50'), b20 = val('b20'), b10 = val('b10'), b5 = val('b5');
     const pieces  = val('total-pieces');
     const fondSup = val('fond-sup');
     if (pieces < 0) { alert('Montant invalide.'); return; }
+    state.b50 = b50; state.b20 = b20; state.b10 = b10; state.b5 = b5;
+    state.totalBillets = b50*50 + b20*20 + b10*10 + b5*5;
     state.totalPieces = pieces;
     state.fondSup = fondSup;
 
@@ -526,7 +583,11 @@
     const fondSupLine = state.fondSup      > 0 ? `<div class="result-line"><span class="rl-label">Fond supplémentaire</span><span class="rl-value positive">+ ${fmt(state.fondSup)}</span></div>` : '';
 
     document.getElementById('result-details').innerHTML = `
-      <div class="result-line"><span class="rl-label">Total attendu (théorique)</span><span class="rl-value">${fmt(state.totalAttendu)}</span></div>
+      <div class="result-line highlight" style="margin-bottom:4px;padding-bottom:12px;border-bottom:2px solid var(--border)">
+        <span class="rl-label" style="font-size:12px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Valeur de référence</span>
+        <span class="rl-value" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--text)">${fmt(state.totalAttendu)}</span>
+      </div>
+      <div style="height:8px"></div>
       <div class="result-line"><span class="rl-label">Billets 50€ × ${state.b50}</span><span class="rl-value">${fmt(state.b50*50)}</span></div>
       <div class="result-line"><span class="rl-label">Billets 20€ × ${state.b20}</span><span class="rl-value">${fmt(state.b20*20)}</span></div>
       <div class="result-line"><span class="rl-label">Billets 10€ × ${state.b10}</span><span class="rl-value">${fmt(state.b10*10)}</span></div>
@@ -535,7 +596,7 @@
       ${fondSupLine}
       <div class="result-line"><span class="rl-label">Total compté brut</span><span class="rl-value">${fmt(state.totalComptage)}</span></div>
       ${ajoutLine}${fondLine}
-      <div class="result-line"><span class="rl-label">Total net (après déductions)</span><span class="rl-value">${fmt(state.totalNet)}</span></div>
+      <div class="result-line"><span class="rl-label">Total net</span><span class="rl-value" style="font-weight:900;font-size:18px">${fmt(state.totalNet)}</span></div>
       <div class="result-line highlight"><span class="rl-label">Écart</span><span class="rl-value ${cls}">${sign}${fmt(diff)}</span></div>
     `;
 
@@ -565,11 +626,11 @@
   }
 
   function resetAll() {
-    state = {}; totalSteps = 6;
+    state = {}; totalSteps = 5;
     ['total-attendu','fond-caisse','montant-ajoute','b50','b20','b10','b5','total-pieces','fond-sup'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.value = ['fond-caisse','fond-sup','montant-ajoute'].includes(id) ? '0' : '';
+      el.value = '';
     });
     updateRunning();
     showStep(1);
