@@ -221,7 +221,7 @@
     <div class="input-group">
       <label>Fond de caisse <span class="badge">€</span></label>
       <input type="number" id="fond-caisse" placeholder="0.00" step="0.01" min="0">
-      <p class="input-hint">Laisser vide si aucun fond fixe</p>
+      <p class="input-hint" id="fond-caisse-hint">Laisser vide si aucun fond fixe</p>
     </div>
     <button class="btn" onclick="goFromStep1b()">Continuer →</button>
   </div>
@@ -334,11 +334,43 @@
   let spinTimer = null;
   let isDark = true;
 
+  /* ── PERSISTANCE (localStorage) ── */
+  function savePrefs() {
+    try {
+      localStorage.setItem('caisse_theme', isDark ? 'dark' : 'light');
+    } catch(e) {}
+  }
+  function saveFondCaisse(v) {
+    try {
+      localStorage.setItem('caisse_fond', v);
+    } catch(e) {}
+  }
+  function loadPrefs() {
+    try {
+      const theme = localStorage.getItem('caisse_theme');
+      if (theme === 'light') {
+        isDark = false;
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.getElementById('theme-btn').textContent = '🌙';
+      }
+      const fond = localStorage.getItem('caisse_fond');
+      if (fond !== null && fond !== '') {
+        const el = document.getElementById('fond-caisse');
+        if (el) {
+          el.value = fond;
+          const hint = document.getElementById('fond-caisse-hint');
+          if (hint) hint.textContent = '✓ Mémorisé — modifiable';
+        }
+      }
+    } catch(e) {}
+  }
+
   /* THEME */
   function toggleTheme() {
     isDark = !isDark;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+    savePrefs();
   }
 
   /* HELPERS */
@@ -353,7 +385,15 @@
     if (!isNaN(v) && v < 0) e.target.value = 0;
   }
   document.addEventListener('DOMContentLoaded', () => {
+    loadPrefs();
     document.querySelectorAll('input[type="number"]').forEach(inp => inp.addEventListener('input', blockNegative));
+    // Sauvegarder le fond de caisse à chaque modification
+    document.getElementById('fond-caisse').addEventListener('input', () => {
+      const v = document.getElementById('fond-caisse').value;
+      saveFondCaisse(v);
+      const hint = document.getElementById('fond-caisse-hint');
+      if (hint) hint.textContent = v !== '' ? '✓ Mémorisé automatiquement' : 'Laisser vide si aucun fond fixe';
+    });
     buildSpinners();
     setupKeyboardNav();
   });
@@ -462,6 +502,9 @@
   }
 
   /* PROGRESS */
+  // Position dans la barre pour chaque étape (indépendant de l'ID)
+  const STEP_POS = { '1': 1, '1b': 2, '2': 3, '3': 4, 'result': 5 };
+
   function renderProgress(current) {
     const p = document.getElementById('progress');
     p.innerHTML = '';
@@ -474,8 +517,8 @@
   function showStep(n) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('visible'));
     document.getElementById('step-' + n)?.classList.add('visible');
-    const num = typeof n === 'number' ? n : totalSteps;
-    renderProgress(num);
+    const pos = STEP_POS[String(n)] ?? totalSteps;
+    renderProgress(pos);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -493,11 +536,16 @@
     const fc = val('fond-caisse');
     if (fc < 0) { alert('Montant invalide.'); return; }
     state.fondCaisse = fc;
+    saveFondCaisse(document.getElementById('fond-caisse').value);
     if (state.totalAttendu < 0) {
+      // Avec étape 2 : 1 → 1b → 2 → 3 → résultat = 5 étapes
       totalSteps = 5;
+      STEP_POS['2'] = 3; STEP_POS['3'] = 4; STEP_POS['result'] = 5;
       showStep(2);
     } else {
+      // Sans étape 2 : 1 → 1b → 3 → résultat = 4 étapes
       totalSteps = 4;
+      STEP_POS['3'] = 3; STEP_POS['result'] = 4;
       state.montantAjoute = 0;
       showStep(3);
       updateRunning();
@@ -596,7 +644,7 @@
       ${fondSupLine}
       <div class="result-line"><span class="rl-label">Total compté brut</span><span class="rl-value">${fmt(state.totalComptage)}</span></div>
       ${ajoutLine}${fondLine}
-      <div class="result-line"><span class="rl-label">Total net</span><span class="rl-value" style="font-weight:900;font-size:18px">${fmt(state.totalNet)}</span></div>
+      <div class="result-line"><span class="rl-label">Total net</span><span class="rl-value" style="font-weight:900;font-size:19px">${fmt(state.totalNet)}</span></div>
       <div class="result-line highlight"><span class="rl-label">Écart</span><span class="rl-value ${cls}">${sign}${fmt(diff)}</span></div>
     `;
 
