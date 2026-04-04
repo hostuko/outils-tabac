@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/logo.png">
+<link rel="apple-touch-icon" href="images/logo.png">
+<title>Liens Utiles</title>
+
+<style>
+:root {
+    --bg: #f4f6f8;
+    --text: #222;
+    --card: #ffffff;
+    --accent: #007BFF;
+    --sub: #888;
+    --overlay: rgba(0,0,0,0.45);
+}
+
+body.dark {
+    --bg: #121212;
+    --text: #f1f1f1;
+    --card: #1e1e1e;
+    --accent: #4da3ff;
+    --sub: #aaa;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+header {
+    padding: 15px;
+    text-align: center;
+    position: relative;
+}
+
+h1 { margin: 0; font-size: 22px; }
+
+.toggle {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--card);
+    color: var(--text);
+    font-size: 16px;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 180px));
+    justify-content: center;
+    gap: 48px;
+    padding: 30px;
+}
+
+@media (max-width: 600px) {
+    .container { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+}
+
+@media (min-width: 900px) {
+    .container { max-width: 600px; margin: auto; }
+}
+
+.card {
+    background: var(--card);
+    padding: 16px 14px 12px;
+    border-radius: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    border: 1px solid rgba(0,0,0,0.05);
+    position: relative;
+    width: 100%;
+    max-width: 180px;
+}
+
+@media (max-width: 600px) { .card { max-width: none; } }
+@media (hover: hover) { .card:hover { transform: translateY(-3px); } }
+
+.card-icon { font-size: 28px; }
+
+.card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.card-user {
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 5px;
+    min-height: 14px;
+    word-break: break-all;
+    opacity: 0.9;
+}
+
+.edit-btn {
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    opacity: 0.45;
+    padding: 2px;
+    transition: opacity 0.15s;
+    color: var(--text);
+}
+.edit-btn:hover { opacity: 1; }
+
+.modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal {
+    background: var(--card);
+    color: var(--text);
+    border-radius: 16px;
+    padding: 28px 24px 22px;
+    width: 300px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal h3 { margin: 0; font-size: 16px; }
+
+.modal label {
+    font-size: 13px;
+    color: var(--sub);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.modal input {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(128,128,128,0.35);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+}
+.modal input:focus { border-color: var(--accent); }
+
+.modal-note {
+    font-size: 11px;
+    color: var(--sub);
+    background: rgba(128,128,128,0.1);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+.btn-cancel { background: rgba(128,128,128,0.15); color: var(--text); }
+.btn-save   { background: var(--accent); color: #fff; }
+.btn-clear  { background: none; border: none; color: #e55; font-size: 12px; cursor: pointer; margin-right: auto; padding: 0; }
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Liens Utiles</h1>
+    <button class="toggle" onclick="toggleTheme()">🌙 / ☀️</button>
+</header>
+
+<div class="container" id="container"></div>
+
+<div class="modal-bg" id="modalBg">
+    <div class="modal">
+        <h3 id="modalTitle">Identifiant</h3>
+        <div>
+            <label>Votre identifiant (email / login)</label>
+            <input type="text" id="modalInput" autocomplete="username" placeholder="ex: prenom@email.com" />
+        </div>
+        <div class="modal-note">🔒 Seul votre identifiant est sauvegardé — jamais votre mot de passe.</div>
+        <div class="modal-actions">
+            <button class="btn-clear" onclick="clearUser()">Effacer</button>
+            <button class="btn btn-cancel" onclick="closeModal()">Annuler</button>
+            <button class="btn btn-save" onclick="saveUser()">Enregistrer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const services = [
+    { id: 'professionjeux', icon: '🎮', title: 'Profession Jeux',  url: 'csam-sso.lfdj.com/user/auth/dologin?tabId=' },
+    { id: 'openpmi',        icon: '🔗', title: 'Open PMI',         url: 'fr.pmiopen.com' },
+    { id: 'batclub',        icon: '🔗', title: 'BAT Club',         url: 'batclub.fr' },
+    { id: 'seita',          icon: '🔗', title: 'Pro + Seita',      url: 'proplus-seita.fr' },
+    { id: 'jti',            icon: '🔗', title: 'mon JTI',          url: 'monjti.com' },
+    { id: 'lyca',           icon: '📱', title: 'Lycamobile',       url: 'retailer.lycamobile.fr' },
+    { id: 'presse',         icon: '📰', title: 'Press Connect',    url: 'presseconnect.fr' },
+    { id: 'nickel',         icon: '💳', title: 'Pro Nickel',       url: 'pro.nickel.eu' },
+];
+
+function render() {
+    const container = document.getElementById('container');
+    container.innerHTML = '';
+    services.forEach(s => {
+        const savedUser = localStorage.getItem('user_' + s.id) || '';
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <button class="edit-btn" title="Modifier l'identifiant" onclick="openModal(event,'${s.id}')">✏️</button>
+            <div class="card-icon">${s.icon}</div>
+            <div class="card-title">${s.title}</div>
+            <div class="card-user" id="user_${s.id}">${savedUser}</div>
+        `;
+        card.addEventListener('click', e => {
+            if (!e.target.closest('.edit-btn')) goTo(s.url);
+        });
+        container.appendChild(card);
+    });
+}
+
+function goTo(domain) {
+    window.open('https://' + domain, '_blank');
+}
+
+let currentServiceId = null;
+
+function openModal(e, serviceId) {
+    e.stopPropagation();
+    currentServiceId = serviceId;
+    const s = services.find(x => x.id === serviceId);
+    document.getElementById('modalTitle').textContent = '🔑 ' + s.title;
+    document.getElementById('modalInput').value = localStorage.getItem('user_' + serviceId) || '';
+    document.getElementById('modalBg').classList.add('open');
+    setTimeout(() => document.getElementById('modalInput').focus(), 100);
+}
+
+function closeModal() {
+    document.getElementById('modalBg').classList.remove('open');
+    currentServiceId = null;
+}
+
+function saveUser() {
+    const val = document.getElementById('modalInput').value.trim();
+    if (currentServiceId) {
+        if (val) localStorage.setItem('user_' + currentServiceId, val);
+        else localStorage.removeItem('user_' + currentServiceId);
+        document.getElementById('user_' + currentServiceId).textContent = val;
+    }
+    closeModal();
+}
+
+function clearUser() {
+    if (currentServiceId) {
+        localStorage.removeItem('user_' + currentServiceId);
+        document.getElementById('user_' + currentServiceId).textContent = '';
+    }
+    closeModal();
+}
+
+document.getElementById('modalBg').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.getElementById('modalInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveUser();
+    if (e.key === 'Escape') closeModal();
+});
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+
+(function () {
+    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
+    render();
+})();
+</script>
+
+</body>
+</html>
