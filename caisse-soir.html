@@ -205,7 +205,7 @@
     <p class="step-desc">Entrez le montant théorique du jour (depuis votre logiciel de caisse ou rapport de vente). Les valeurs négatives sont acceptées ici.</p>
     <div class="input-group">
       <label>Montant attendu <span class="badge">€</span></label>
-      <input type="number" id="total-attendu" placeholder="0.00" step="0.01">
+      <input type="number" id="total-attendu" placeholder="0.00" step="0.01" inputmode="decimal">
     </div>
     <button class="btn" onclick="goFromStep1()">Continuer →</button>
   </div>
@@ -220,7 +220,7 @@
     </div>
     <div class="input-group">
       <label>Fond de caisse <span class="badge">€</span></label>
-      <input type="number" id="fond-caisse" placeholder="0.00" step="0.01" min="0">
+      <input type="number" id="fond-caisse" placeholder="0.00" step="0.01" min="0" inputmode="decimal">
       <p class="input-hint" id="fond-caisse-hint">Laisser vide si aucun fond fixe</p>
     </div>
     <button class="btn" onclick="goFromStep1b()">Continuer →</button>
@@ -245,6 +245,30 @@
     <p class="step-desc">Comptez vos billets avec les flèches ou en saisissant directement, puis entrez le total des pièces et un éventuel fond supplémentaire.</p>
 
     <div class="bills-grid">
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">500 €</span>
+        </div>
+        <div class="bill-controls" id="ctrl-b500"></div>
+        <div class="bill-subtotal" id="sub-b500">= 0,00 €</div>
+      </div>
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">200 €</span>
+        </div>
+        <div class="bill-controls" id="ctrl-b200"></div>
+        <div class="bill-subtotal" id="sub-b200">= 0,00 €</div>
+      </div>
+      <div class="bill-card">
+        <div class="bill-top">
+          <span class="bill-label-text">Billets</span>
+          <span class="bill-denom">100 €</span>
+        </div>
+        <div class="bill-controls" id="ctrl-b100"></div>
+        <div class="bill-subtotal" id="sub-b100">= 0,00 €</div>
+      </div>
       <div class="bill-card">
         <div class="bill-top">
           <span class="bill-label-text">Billets</span>
@@ -399,7 +423,7 @@
   });
 
   /* KEYBOARD NAVIGATION */
-  const STEP3_ORDER = ['b50', 'b20', 'b10', 'b5', 'total-pieces', 'fond-sup'];
+  const STEP3_ORDER = ['b500', 'b200', 'b100', 'b50', 'b20', 'b10', 'b5', 'total-pieces', 'fond-sup'];
 
   function attachStep3Enter(inp, id) {
     inp.addEventListener('keydown', e => {
@@ -436,7 +460,7 @@
 
   /* BUILD SPINNER CONTROLS — évite le double-fire mobile en gérant touch séparément */
   function buildSpinners() {
-    const bills = ['b50','b20','b10','b5'];
+    const bills = ['b500','b200','b100','b50','b20','b10','b5'];
     bills.forEach(id => {
       const container = document.getElementById('ctrl-' + id);
       if (!container) return;
@@ -563,9 +587,10 @@
 
   /* RUNNING TOTALS */
   function updateRunning() {
+    const b500 = val('b500'), b200 = val('b200'), b100 = val('b100');
     const b50 = val('b50'), b20 = val('b20'), b10 = val('b10'), b5 = val('b5');
-    const billets = b50*50 + b20*20 + b10*10 + b5*5;
-    const subs = { b50: b50*50, b20: b20*20, b10: b10*10, b5: b5*5 };
+    const billets = b500*500 + b200*200 + b100*100 + b50*50 + b20*20 + b10*10 + b5*5;
+    const subs = { b500: b500*500, b200: b200*200, b100: b100*100, b50: b50*50, b20: b20*20, b10: b10*10, b5: b5*5 };
     for (const [id, v] of Object.entries(subs)) {
       const el = document.getElementById('sub-' + id);
       if (el) el.textContent = '= ' + fmt(v);
@@ -581,12 +606,14 @@
 
   /* RESULT */
   function goResult() {
+    const b500 = val('b500'), b200 = val('b200'), b100 = val('b100');
     const b50 = val('b50'), b20 = val('b20'), b10 = val('b10'), b5 = val('b5');
     const pieces  = val('total-pieces');
     const fondSup = val('fond-sup');
     if (pieces < 0) { alert('Montant invalide.'); return; }
+    state.b500 = b500; state.b200 = b200; state.b100 = b100;
     state.b50 = b50; state.b20 = b20; state.b10 = b10; state.b5 = b5;
-    state.totalBillets = b50*50 + b20*20 + b10*10 + b5*5;
+    state.totalBillets = b500*500 + b200*200 + b100*100 + b50*50 + b20*20 + b10*10 + b5*5;
     state.totalPieces = pieces;
     state.fondSup = fondSup;
 
@@ -636,6 +663,9 @@
         <span class="rl-value" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--text)">${fmt(state.totalAttendu)}</span>
       </div>
       <div style="height:8px"></div>
+      ${state.b500 > 0 ? `<div class="result-line"><span class="rl-label">Billets 500€ × ${state.b500}</span><span class="rl-value">${fmt(state.b500*500)}</span></div>` : ''}
+      ${state.b200 > 0 ? `<div class="result-line"><span class="rl-label">Billets 200€ × ${state.b200}</span><span class="rl-value">${fmt(state.b200*200)}</span></div>` : ''}
+      ${state.b100 > 0 ? `<div class="result-line"><span class="rl-label">Billets 100€ × ${state.b100}</span><span class="rl-value">${fmt(state.b100*100)}</span></div>` : ''}
       <div class="result-line"><span class="rl-label">Billets 50€ × ${state.b50}</span><span class="rl-value">${fmt(state.b50*50)}</span></div>
       <div class="result-line"><span class="rl-label">Billets 20€ × ${state.b20}</span><span class="rl-value">${fmt(state.b20*20)}</span></div>
       <div class="result-line"><span class="rl-label">Billets 10€ × ${state.b10}</span><span class="rl-value">${fmt(state.b10*10)}</span></div>
@@ -656,6 +686,9 @@
       const ra  = state.montantAjoute > 0 ? `<div class="recheck-item"><span class="ri-label">Ajout journée</span><span class="ri-val">− ${fmt(state.montantAjoute)}</span></div>` : '';
       const rfs = state.fondSup      > 0 ? `<div class="recheck-item"><span class="ri-label">Fond supplémentaire</span><span class="ri-val">+ ${fmt(state.fondSup)}</span></div>` : '';
       document.getElementById('recheck-list').innerHTML = `
+        ${state.b500 > 0 ? `<div class="recheck-item"><span class="ri-label">Billets 500€</span><span class="ri-val">${state.b500} × 500€ = ${fmt(state.b500*500)}</span></div>` : ''}
+        ${state.b200 > 0 ? `<div class="recheck-item"><span class="ri-label">Billets 200€</span><span class="ri-val">${state.b200} × 200€ = ${fmt(state.b200*200)}</span></div>` : ''}
+        ${state.b100 > 0 ? `<div class="recheck-item"><span class="ri-label">Billets 100€</span><span class="ri-val">${state.b100} × 100€ = ${fmt(state.b100*100)}</span></div>` : ''}
         <div class="recheck-item"><span class="ri-label">Billets 50€</span><span class="ri-val">${state.b50} × 50€ = ${fmt(state.b50*50)}</span></div>
         <div class="recheck-item"><span class="ri-label">Billets 20€</span><span class="ri-val">${state.b20} × 20€ = ${fmt(state.b20*20)}</span></div>
         <div class="recheck-item"><span class="ri-label">Billets 10€</span><span class="ri-val">${state.b10} × 10€ = ${fmt(state.b10*10)}</span></div>
@@ -675,7 +708,7 @@
 
   function resetAll() {
     state = {}; totalSteps = 5;
-    ['total-attendu','fond-caisse','montant-ajoute','b50','b20','b10','b5','total-pieces','fond-sup'].forEach(id => {
+    ['total-attendu','fond-caisse','montant-ajoute','b500','b200','b100','b50','b20','b10','b5','total-pieces','fond-sup'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.value = '';
