@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Comptage Livraison</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -11,11 +11,12 @@
     --accent: #f5a623; --text: #f0ece4; --muted: #666;
     --border: #333; --green: #4caf7d; --red: #e8472a; --blue: #4a90d9;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
     background:var(--bg); color:var(--text); font-family:'DM Mono',monospace;
     min-height:100vh; display:flex; flex-direction:column;
     align-items:center; justify-content:center; padding:20px; overflow-x:hidden;
+    padding-bottom:140px;
   }
   body::before {
     content:''; position:fixed; inset:0;
@@ -35,6 +36,7 @@
   @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
   @keyframes slideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
   @keyframes popIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
+  @keyframes modalIn { from{opacity:0;transform:scale(.92) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
 
   .card { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:28px 30px; }
   .card h2 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:2px; color:var(--accent); margin-bottom:6px; }
@@ -54,6 +56,7 @@
     width:100%; background:var(--accent); color:#000; border:none; border-radius:2px;
     padding:14px; font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:2px;
     cursor:pointer; transition:background .15s,transform .1s; margin-top:8px;
+    -webkit-appearance:none;
   }
   .btn:hover { background:#ffb83f; }
   .btn:active { transform:scale(.98); }
@@ -89,27 +92,49 @@
   .pile-ind-val { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--accent); letter-spacing:1px; }
   .pile-ind-right { font-size:11px; color:var(--muted); }
 
-  /* Piles list */
+  /* ── Piles list — SCROLL MOBILE FIX ── */
   .piles-section { margin-top:18px; }
   .section-title { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:10px; }
-  .piles-container { display:flex; flex-direction:column; gap:8px; max-height:240px; overflow-y:auto; padding-right:4px; }
+  .piles-container {
+    display:flex; flex-direction:column; gap:8px;
+    max-height:260px;
+    overflow-y:scroll;            /* scroll plutôt que auto = meilleur sur iOS */
+    -webkit-overflow-scrolling:touch; /* inertie native iOS */
+    overscroll-behavior:contain;  /* empêche le scroll parent de "reprendre" */
+    touch-action:pan-y;           /* autorise le glissement vertical */
+    padding-right:4px;
+    /* évite que le container capte les swipes horizontaux */
+    will-change:scroll-position;
+  }
   .piles-container::-webkit-scrollbar { width:3px; }
   .piles-container::-webkit-scrollbar-track { background:var(--surface); }
-  .piles-container::-webkit-scrollbar-thumb { background:var(--border); }
+  .piles-container::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 
   .pile {
     background:var(--surface); border:1px solid var(--border); border-radius:2px;
     padding:11px 14px; display:flex; align-items:center; gap:10px;
-    animation:slideIn .3s ease;
+    animation:slideIn .3s ease; flex-shrink:0;
   }
   .pile.pile-active { border-color:var(--accent); }
   .pile-num { font-family:'Bebas Neue',sans-serif; font-size:26px; color:var(--accent); min-width:32px; line-height:1; }
-  .pile-info { flex:1; }
+  .pile-info { flex:1; min-width:0; }
   .pile-name { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:4px; }
   .pile-boxes { display:flex; flex-wrap:wrap; gap:4px; }
-  .box-tag { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:2px 7px; font-size:11px; color:var(--text); }
+
+  /* ── Box tags cliquables ── */
+  .box-tag {
+    background:var(--card); border:1px solid var(--border); border-radius:2px;
+    padding:4px 8px; font-size:11px; color:var(--text);
+    cursor:pointer; user-select:none;
+    transition:border-color .15s, background .15s, transform .1s;
+    touch-action:manipulation; /* empêche le double-tap zoom */
+  }
+  .box-tag:hover { border-color:var(--accent); background:rgba(245,166,35,.08); }
+  .box-tag:active { transform:scale(.94); }
   .box-tag span { color:var(--accent); }
-  .pile-total { font-size:16px; font-weight:500; color:var(--text); text-align:right; min-width:52px; }
+  .box-tag .edit-icon { color:var(--muted); font-size:9px; margin-left:3px; vertical-align:middle; opacity:.6; }
+
+  .pile-total { font-size:16px; font-weight:500; color:var(--text); text-align:right; min-width:52px; flex-shrink:0; }
   .pile-total small { display:block; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
 
   /* Result */
@@ -129,9 +154,9 @@
   .compare-sep { font-family:'Bebas Neue',sans-serif; font-size:22px; color:var(--muted); text-align:center; }
 
   .diff-badge { display:inline-block; border-radius:2px; padding:4px 10px; font-size:12px; font-weight:500; }
-  .diff-badge.plus { background:rgba(76,175,125,.2); color:var(--green); }
-  .diff-badge.minus { background:rgba(232,71,42,.2); color:var(--red); }
-  .diff-badge.zero { background:rgba(245,166,35,.15); color:var(--accent); }
+  .diff-badge.plus  { background:rgba(76,175,125,.2); color:var(--green); }
+  .diff-badge.minus { background:rgba(232,71,42,.2);  color:var(--red); }
+  .diff-badge.zero  { background:rgba(245,166,35,.15); color:var(--accent); }
 
   /* Correction table */
   .correction-section { margin-top:18px; }
@@ -148,6 +173,8 @@
   .corr-grid {
     border:1px solid var(--border); border-radius:2px; overflow:hidden;
     max-height:300px; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
   }
   .corr-grid::-webkit-scrollbar { width:3px; }
   .corr-grid::-webkit-scrollbar-track { background:var(--surface); }
@@ -168,7 +195,7 @@
   .corr-row.modified  { background:rgba(245,166,35,.05); }
   .corr-row > div { padding:7px 10px; display:flex; align-items:center; }
 
-  .corr-num { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--accent); }
+  .corr-num  { font-family:'Bebas Neue',sans-serif; font-size:18px; color:var(--accent); }
   .corr-pile { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
   .corr-input {
     background:var(--surface); border:1px solid var(--border); border-radius:2px;
@@ -185,7 +212,7 @@
     font-size:11px; cursor:pointer; transition:all .15s; white-space:nowrap;
   }
   .corr-val-btn:hover { border-color:var(--green); color:var(--green); }
-  .corr-val-btn.done { border-color:var(--green); color:var(--green); background:rgba(76,175,125,.1); }
+  .corr-val-btn.done  { border-color:var(--green); color:var(--green); background:rgba(76,175,125,.1); }
   .corr-val-btn.reval { border-color:var(--accent); color:var(--accent); }
 
   .corr-footer {
@@ -200,51 +227,126 @@
   }
   .recalc-btn:hover { background:#ffb83f; }
 
-/* STACK VISUAL FIXED BOTTOM */
-.stack-visual {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #111;
-  border-top: 1px solid #333;
-  padding: 10px;
-  z-index: 999;
-}
-#stack-container {
-  display: flex;
-  gap: 20px;
-  align-items: flex-end;
-  justify-content: center;
-}
-.stack {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-}
-.stack-box {
-  width: 40px;
-  height: 25px;
-  background: #f5a623;
-  margin: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: #000;
-  font-weight: bold;
-}
-.stack-label {
-  font-size: 9px;
-  color: #aaa;
-  margin-top: 4px;
-  text-align:center;
-}
-body { padding-bottom:120px; }
+  /* ── STACK VISUAL ── */
+  .stack-visual {
+    position:fixed; bottom:0; left:0; width:100%;
+    background:#111; border-top:1px solid #333; padding:10px; z-index:999;
+  }
+  #stack-container {
+    display:flex; gap:20px; align-items:flex-end; justify-content:center;
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    padding-bottom:2px;
+  }
+  #stack-container::-webkit-scrollbar { display:none; }
+  .stack { display:flex; flex-direction:column-reverse; align-items:center; flex-shrink:0; }
+  .stack-box {
+    width:40px; height:25px; background:var(--accent); margin:2px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:#000; font-weight:bold; border-radius:1px;
+    cursor:pointer; transition:background .15s, transform .1s;
+    touch-action:manipulation;
+  }
+  .stack-box:hover { background:#ffb83f; transform:scale(1.08); }
+  .stack-box:active { transform:scale(.94); }
+  .stack-label { font-size:9px; color:#aaa; margin-top:4px; text-align:center; }
 
+  /* ────────────────────────────────────────
+     MODAL ÉDITION CARTON
+  ──────────────────────────────────────── */
+  .modal-overlay {
+    position:fixed; inset:0; z-index:2000;
+    background:rgba(0,0,0,.72);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+    opacity:0; pointer-events:none;
+    transition:opacity .2s;
+    backdrop-filter:blur(4px);
+  }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+
+  .modal {
+    background:var(--card); border:1px solid var(--accent);
+    border-radius:4px; padding:28px 24px; width:100%; max-width:320px;
+    animation:modalIn .25s ease forwards;
+    box-shadow:0 0 40px rgba(245,166,35,.15);
+  }
+
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;
+  }
+  .modal-title { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:2px; color:var(--accent); }
+  .modal-close {
+    background:transparent; border:1px solid var(--border); border-radius:2px;
+    color:var(--muted); font-size:16px; cursor:pointer; padding:4px 8px;
+    transition:border-color .15s, color .15s;
+  }
+  .modal-close:hover { border-color:var(--red); color:var(--red); }
+
+  .modal-meta { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); margin-bottom:20px; }
+
+  /* Contrôle +/- */
+  .qty-control {
+    display:flex; align-items:center; gap:0; border:1px solid var(--border);
+    border-radius:2px; overflow:hidden; margin-bottom:20px;
+  }
+  .qty-btn {
+    background:var(--surface); border:none; color:var(--text);
+    font-family:'Bebas Neue',sans-serif; font-size:26px; line-height:1;
+    padding:10px 18px; cursor:pointer; transition:background .15s;
+    touch-action:manipulation; flex-shrink:0;
+  }
+  .qty-btn:hover { background:rgba(245,166,35,.15); color:var(--accent); }
+  .qty-btn:active { background:rgba(245,166,35,.25); }
+  .qty-val {
+    flex:1; background:var(--bg); color:var(--text);
+    font-family:'DM Mono',monospace; font-size:28px; font-weight:500;
+    text-align:center; border:none; border-left:1px solid var(--border);
+    border-right:1px solid var(--border); padding:10px 8px; outline:none;
+  }
+
+  .modal-footer { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .modal-btn {
+    border:none; border-radius:2px; padding:12px; cursor:pointer;
+    font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:1.5px;
+    transition:background .15s, transform .1s; touch-action:manipulation;
+  }
+  .modal-btn:active { transform:scale(.97); }
+  .modal-btn.confirm { background:var(--accent); color:#000; }
+  .modal-btn.confirm:hover { background:#ffb83f; }
+  .modal-btn.cancel  { background:transparent; color:var(--text); border:1px solid var(--border); }
+  .modal-btn.cancel:hover { border-color:var(--muted); }
 </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════
+     MODAL ÉDITION CARTON
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-box-title">CARTON —</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-meta" id="modal-box-meta">— articles</div>
+
+    <div class="qty-control">
+      <button class="qty-btn" onclick="qtyStep(-1)">−</button>
+      <input class="qty-val" id="modal-qty" type="number" min="0" inputmode="numeric"
+             oninput="clampQty()">
+      <button class="qty-btn" onclick="qtyStep(+1)">+</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeModal()">ANNULER</button>
+      <button class="modal-btn confirm" onclick="confirmEdit()">CONFIRMER ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP
+══════════════════════════════════════════ -->
 <div class="app">
   <div class="header">
     <h1>📦 LIVRAISON</h1>
@@ -258,11 +360,11 @@ body { padding-bottom:120px; }
       <p class="subtitle">Renseigne les infos de départ</p>
       <div class="field">
         <label>Nombre de cartons à compter</label>
-        <input type="number" id="input-cartons" placeholder="ex: 24" min="1">
+        <input type="number" id="input-cartons" placeholder="ex: 24" min="1" inputmode="numeric">
       </div>
       <div class="field">
         <label>Nombre total d'articles attendus</label>
-        <input type="number" id="input-articles-total" placeholder="ex: 480" min="1">
+        <input type="number" id="input-articles-total" placeholder="ex: 480" min="1" inputmode="numeric">
       </div>
       <button class="btn" onclick="startCounting()">COMMENCER →</button>
     </div>
@@ -295,7 +397,7 @@ body { padding-bottom:120px; }
 
       <div class="field">
         <label id="count-label">Articles dans le carton 1</label>
-        <input type="number" id="input-box-count" placeholder="ex: 20" min="0"
+        <input type="number" id="input-box-count" placeholder="ex: 20" min="0" inputmode="numeric"
           onkeydown="if(event.key==='Enter') nextBox()">
       </div>
 
@@ -306,7 +408,7 @@ body { padding-bottom:120px; }
     </div>
 
     <div class="piles-section">
-      <div class="section-title">Piles rangées</div>
+      <div class="section-title">Piles rangées <span style="color:var(--accent);margin-left:4px;">· tap carton pour éditer</span></div>
       <div class="piles-container" id="piles-container">
         <div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">Aucune pile pour l'instant…</div>
       </div>
@@ -362,14 +464,22 @@ body { padding-bottom:120px; }
   </div>
 </div>
 
+<!-- Stack visuel fixe en bas -->
+<div class="stack-visual">
+  <div id="stack-container"></div>
+</div>
+
 <script>
   let totalBoxes    = 0;
   let totalExpected = 0;
   let currentBox    = 0;
   let currentPile   = 1;
-  let piles         = [];   // [{pileNum, boxes:[{boxNum,count}], total}]
-  let allBoxes      = [];   // [{boxNum, count, pileNum}]
-  let corrValidated = {};   // boxNum -> bool
+  let piles         = [];
+  let allBoxes      = [];
+  let corrValidated = {};
+
+  /* ─── ÉTAT MODAL ─── */
+  let editingBoxNum = null;
 
   /* ─── SETUP ─── */
   function startCounting() {
@@ -414,11 +524,11 @@ body { padding-bottom:120px; }
 
   /* ─── UI COMPTAGE ─── */
   function updateCountScreen() {
-    const next      = currentBox + 1;
-    const scanned   = allBoxes.reduce((s, b) => s + b.count, 0);
-    const pct       = currentBox / totalBoxes * 100;
-    const thisPile  = piles.find(p => p.pileNum === currentPile);
-    const firstIn   = thisPile ? thisPile.boxes[0].boxNum : next;
+    const next     = currentBox + 1;
+    const scanned  = allBoxes.reduce((s, b) => s + b.count, 0);
+    const pct      = currentBox / totalBoxes * 100;
+    const thisPile = piles.find(p => p.pileNum === currentPile);
+    const firstIn  = thisPile ? thisPile.boxes[0].boxNum : next;
 
     document.getElementById('stat-done').textContent      = currentBox;
     document.getElementById('stat-remaining').textContent = totalBoxes - currentBox;
@@ -441,7 +551,11 @@ body { padding-bottom:120px; }
     }
     container.innerHTML = piles.map(pile => {
       const active = pile.pileNum === currentPile;
-      const tags   = pile.boxes.map(b => `<div class="box-tag">C${b.boxNum} <span>${b.count}</span></div>`).join('');
+      const tags = pile.boxes.map(b =>
+        `<div class="box-tag" onclick="openModal(${b.boxNum})" title="Modifier C${b.boxNum}">
+           C${b.boxNum} <span>${b.count}</span><span class="edit-icon">✎</span>
+         </div>`
+      ).join('');
       return `<div class="pile ${active ? 'pile-active' : ''}">
         <div class="pile-num">${pile.pileNum}</div>
         <div class="pile-info">
@@ -474,9 +588,9 @@ body { padding-bottom:120px; }
     document.getElementById('res-expected').textContent = totalExpected;
     document.getElementById('res-counted').textContent  = counted;
     const badge = document.getElementById('diff-badge');
-    if (diff === 0)       { badge.className = 'diff-badge zero';  badge.textContent = '± 0 article — Conforme'; }
-    else if (diff > 0)    { badge.className = 'diff-badge plus';  badge.textContent = `+ ${diff} article${diff>1?'s':''} en surplus`; }
-    else                  { badge.className = 'diff-badge minus'; badge.textContent = `− ${Math.abs(diff)} article${Math.abs(diff)>1?'s':''} manquant${Math.abs(diff)>1?'s':''}`; }
+    if (diff === 0)    { badge.className = 'diff-badge zero';  badge.textContent = '± 0 article — Conforme'; }
+    else if (diff > 0) { badge.className = 'diff-badge plus';  badge.textContent = `+ ${diff} article${diff>1?'s':''} en surplus`; }
+    else               { badge.className = 'diff-badge minus'; badge.textContent = `− ${Math.abs(diff)} article${Math.abs(diff)>1?'s':''} manquant${Math.abs(diff)>1?'s':''}`; }
     document.getElementById('result-banner').style.animation = 'popIn .35s ease';
   }
 
@@ -497,6 +611,7 @@ body { padding-bottom:120px; }
         <div>
           <input class="corr-input ${corrValidated[b.boxNum] ? 'validated-input' : ''}"
             id="ci-${b.boxNum}" type="number" value="${b.count}" min="0"
+            inputmode="numeric"
             oninput="onCorrInput(${b.boxNum})"
             onkeydown="if(event.key==='Enter') validateBox(${b.boxNum})">
         </div>
@@ -539,7 +654,6 @@ body { padding-bottom:120px; }
   }
 
   function recalcFromCorrections() {
-    // Reconstruire les piles
     piles = [];
     allBoxes.forEach(b => {
       let pile = piles.find(p => p.pileNum === b.pileNum);
@@ -561,6 +675,102 @@ body { padding-bottom:120px; }
     document.getElementById('corr-table').classList.toggle('open');
   }
 
+  /* ─── MODAL ÉDITION ─── */
+  function openModal(boxNum) {
+    const box = allBoxes.find(b => b.boxNum === boxNum);
+    if (!box) return;
+    editingBoxNum = boxNum;
+    document.getElementById('modal-box-title').textContent = `CARTON ${boxNum}`;
+    document.getElementById('modal-box-meta').textContent  = `Pile ${box.pileNum} · valeur actuelle : ${box.count} article${box.count !== 1 ? 's' : ''}`;
+    document.getElementById('modal-qty').value = box.count;
+    document.getElementById('modal-overlay').classList.add('open');
+    // Focus le champ après l'animation
+    setTimeout(() => document.getElementById('modal-qty').focus(), 120);
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    editingBoxNum = null;
+  }
+
+  function closeModalOutside(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  function qtyStep(delta) {
+    const input = document.getElementById('modal-qty');
+    const v = parseInt(input.value) || 0;
+    input.value = Math.max(0, v + delta);
+  }
+
+  function clampQty() {
+    const input = document.getElementById('modal-qty');
+    if (parseInt(input.value) < 0) input.value = 0;
+  }
+
+  function confirmEdit() {
+    const newVal = parseInt(document.getElementById('modal-qty').value);
+    if (isNaN(newVal) || newVal < 0) { shake(document.getElementById('modal-qty')); return; }
+
+    if (editingBoxNum !== null) {
+      const box = allBoxes.find(b => b.boxNum === editingBoxNum);
+      if (box) {
+        const oldVal = box.count;
+        box.count = newVal;
+        // Mettre à jour la pile correspondante
+        const pile = piles.find(p => p.pileNum === box.pileNum);
+        if (pile) {
+          const pb = pile.boxes.find(x => x.boxNum === editingBoxNum);
+          if (pb) pb.count = newVal;
+          pile.total = pile.boxes.reduce((s, x) => s + x.count, 0);
+        }
+      }
+    }
+
+    closeModal();
+    renderPiles();
+    updateCountScreen();
+  }
+
+  /* Fermer la modal avec Escape */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Enter' && document.getElementById('modal-overlay').classList.contains('open')) {
+      e.preventDefault(); confirmEdit();
+    }
+  });
+
+  /* ─── STACK VISUEL ─── */
+  function renderStackVisual() {
+    const container = document.getElementById('stack-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    piles.forEach(pile => {
+      const wrapper = document.createElement('div');
+
+      const stack = document.createElement('div');
+      stack.className = 'stack';
+
+      pile.boxes.forEach(box => {
+        const el = document.createElement('div');
+        el.className = 'stack-box';
+        el.textContent = box.boxNum;
+        el.title = `C${box.boxNum} — ${box.count} articles`;
+        el.onclick = () => openModal(box.boxNum);
+        stack.appendChild(el);
+      });
+
+      const label = document.createElement('div');
+      label.className = 'stack-label';
+      label.textContent = 'P' + pile.pileNum;
+
+      wrapper.appendChild(stack);
+      wrapper.appendChild(label);
+      container.appendChild(wrapper);
+    });
+  }
+
   /* ─── UTILS ─── */
   function restart() {
     document.getElementById('input-cartons').value = '';
@@ -579,41 +789,6 @@ body { padding-bottom:120px; }
     el.style.animation = 'shake .35s ease';
     setTimeout(() => el.style.animation = '', 400);
   }
-
-function renderStackVisual() {
-  const container = document.getElementById('stack-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  piles.forEach(pile => {
-    const wrapper = document.createElement('div');
-
-    const stack = document.createElement('div');
-    stack.className = 'stack';
-
-    pile.boxes.forEach(box => {
-      const el = document.createElement('div');
-      el.className = 'stack-box';
-      el.textContent = box.boxNum;
-      stack.appendChild(el);
-    });
-
-    const label = document.createElement('div');
-    label.className = 'stack-label';
-    label.textContent = 'P' + pile.pileNum;
-
-    wrapper.appendChild(stack);
-    wrapper.appendChild(label);
-
-    container.appendChild(wrapper);
-  });
-}
-
 </script>
-
-<div class="stack-visual">
-  <div id="stack-container"></div>
-</div>
-
 </body>
 </html>
