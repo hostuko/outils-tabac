@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Commande E-liquides</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:15px;
+    font-family:Arial, sans-serif;
+    background:#f4f4f4;
+    color:#222;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    font-size:28px;
+}
+
+.container{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.section{
+    background:white;
+    padding:12px;
+    border-radius:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.section h2{
+    margin:0 0 10px 0;
+    font-size:18px;
+    border-bottom:2px solid #eee;
+    padding-bottom:5px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+}
+
+th{
+    background:#ececec;
+}
+
+th, td{
+    border:1px solid #ddd;
+    padding:4px;
+    text-align:center;
+}
+
+td:first-child{
+    text-align:left;
+    font-weight:500;
+}
+
+input[type="number"]{
+    width:50px;
+    padding:3px;
+    font-size:12px;
+}
+
+.bottom-bar{
+    margin-top:20px;
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+button{
+    background:#27ae60;
+    color:white;
+    border:none;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
+}
+
+button:hover{
+    background:#1e8c4d;
+}
+
+.total{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.orange{
+    color:#d35400;
+}
+
+.blue{
+    color:#3498db;
+}
+
+.red{
+    color:#c0392b;
+}
+
+@media(max-width:900px){
+
+    .container{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Commande Gammes E-liquides</h1>
+
+<div class="container">
+
+    <!-- COLONNE GAUCHE -->
+    <div>
+
+        <!-- TABACS -->
+        <div class="section">
+
+            <h2 class="orange">Les Tabacs</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>0</th>
+                    <th>03</th>
+                    <th>06</th>
+                    <th>11</th>
+                </tr>
+
+                <tr>
+                    <td>Goût Américain</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Goût Oriental</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Goût Anglais</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Goût Cubain</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Goût Brun</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+            </table>
+
+        </div>
+
+        <!-- MENTHOLES -->
+        <div class="section">
+
+            <h2 class="blue">Les Mentholés</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>0</th>
+                    <th>03</th>
+                    <th>06</th>
+                    <th>11</th>
+                </tr>
+
+                <tr>
+                    <td>Menthe Glaciale</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Menthe Fraîche</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Menthe Chloro</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Américain/Menthe</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+            </table>
+
+        </div>
+
+        <!-- FRUITES -->
+        <div class="section">
+
+            <h2 class="red">Les Fruités</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>0</th>
+                    <th>03</th>
+                    <th>06</th>
+                    <th>11</th>
+                </tr>
+
+                <tr><td>Fruits Rouges</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Fraise des Bois</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Cerise</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Citron</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr>
+                    <td>Agrumes</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Douple pomme</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Melon</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Pêche</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr><td>Mangue</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Passion</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+                
+                <tr>
+                    <td>Coco</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+
+                <tr>
+                    <td>Cassis</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+            </table>
+
+        </div>
+
+        <!-- GOURMANDS -->
+        <div class="section">
+
+            <h2>Les Gourmands</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>0</th>
+                    <th>03</th>
+                    <th>06</th>
+                    <th>11</th>
+                </tr>
+
+                <tr><td>Bubble Gum</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Caramel</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Café</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Cola</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+                <tr>
+                    <td>Vanille</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Anis</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Reglisse</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Noisette</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- COLONNE DROITE -->
+    <div>
+
+        <!-- INCONTOURNABLES -->
+        <div class="section">
+
+            <h2>Incontournables</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>Qté</th>
+                </tr>
+
+                <tr><td>Goût Anglais</td><td><input type="number" class="qty"></td></tr>
+                <tr><td>Menthe Fraîche</td><td><input type="number" class="qty"></td></tr>
+                <tr><td>Fruits Rouges</td><td><input type="number" class="qty"></td></tr>
+                <tr><td>Bubble Gum</td><td><input type="number" class="qty"></td></tr>
+
+            </table>
+
+        </div>
+
+        <!-- SAVEURS PUFFS -->
+        <div class="section">
+
+            <h2>Saveurs Puffs</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>Qté</th>
+                </tr>
+
+                <tr><td>Blueberry</td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Milkshake Fraise</td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Dragon Fruits</td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Pomme Glacée</td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Raisin Glacé</td><td><input type="number" class="qty"></td></tr>
+
+            </table>
+
+        </div>
+
+        <!-- GIVRES -->
+        <div class="section">
+
+            <h2>Les Givrés</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>0</th>
+                    <th>03</th>
+                    <th>06</th>
+                    <th>11</th>
+                </tr>
+
+                <tr><td>Citron Cassis</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Kiwi Cactus</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+                <tr><td>Fraise Givrée</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+                <tr>
+                    <td>Limonade Litchi</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Fruit du Dragon</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Fruit du Serpent</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Tropical Framboise</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Fruits Rouges</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+            </table>
+
+        </div>
+
+        <!-- MIXTES -->
+        <div class="section">
+
+            <h2>Mixtes</h2>
+
+            <table>
+
+                <tr>
+                    <th>Produit</th>
+                    <th>0</th>
+                    <th>03</th>
+                    <th>06</th>
+                    <th>11</th>
+                </tr>
+
+                <tr><td>Melon Pastèque</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+                <tr>
+                    <td>Fruits Rouges acidulés</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr><td>Pastèque Goyave</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+                <tr>
+                    <td>Fruits Rouges mentholés</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Yaourt fruits rouges</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Tarte Framboise</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr><td>Arlequin</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+                <tr>
+                    <td>Noisette Pop Corn</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr>
+                    <td>Caramel Beurre Salé</td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                    <td><input type="number" class="qty"></td>
+                </tr>
+                <tr><td>Menthe Polaire</td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td><td><input type="number" class="qty"></td></tr>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="bottom-bar">
+
+    <div class="total">
+        Total boîtes :
+        <span id="total">0</span>
+    </div>
+
+    <button onclick="calculerTotal()">
+        Calculer le total
+    </button>
+
+</div>
+
+<!-- ================= PAGE RESULTAT ================= -->
+<div id="resultPage" style="display:none;">
+    <h1>Récapitulatif de commande</h1>
+    <div id="resultContainer"></div>
+
+    <div class="bottom-bar">
+        <button onclick="retour()">Retour</button>
+    </div>
+</div>
+
+<script>
+
+function calculerTotal(){
+
+    let total = 0;
+
+    document.querySelectorAll('.qty').forEach(input => {
+        total += parseInt(input.value) || 0;
+    });
+
+    document.getElementById('total').innerText = total;
+}
+
+// sauvegarde fonction originale
+const oldCalculerTotal = calculerTotal;
+
+calculerTotal = function(){
+
+    oldCalculerTotal();
+    genererResultat();
+
+    document.querySelector('.container').style.display = 'none';
+    document.querySelector('.bottom-bar').style.display = 'none';
+    document.querySelector('h1').style.display = 'none';
+
+    document.getElementById('resultPage').style.display = 'block';
+};
+
+function genererResultat(){
+
+    const sections = document.querySelectorAll('.section');
+    let html = '';
+
+    sections.forEach(section => {
+
+        let table = section.querySelector('table');
+        let title = section.querySelector('h2')?.outerHTML || '';
+
+        let rows = table.querySelectorAll('tr');
+        let headerHTML = '';
+        let tableHTML = '';
+        let hasData = false;
+
+        rows.forEach((row, index) => {
+
+            // Ligne d'en-tête (<th>) : on la capture telle quelle
+            if(index === 0){
+                let ths = row.querySelectorAll('th');
+                let thRow = '';
+                ths.forEach(th => {
+                    thRow += `<th>${th.innerText}</th>`;
+                });
+                headerHTML = `<tr>${thRow}</tr>`;
+                return;
+            }
+
+            // Lignes de données
+            let cells = row.querySelectorAll('td');
+            let newRow = '';
+            let rowHasValue = false;
+
+            cells.forEach(cell => {
+
+                let input = cell.querySelector('input');
+
+                if(input){
+
+                    let val = parseInt(input.value) || 0;
+
+                    if(val > 0){
+                        newRow += `<td>${val}</td>`;
+                        rowHasValue = true;
+                        hasData = true;
+                    } else {
+                        newRow += `<td></td>`;
+                    }
+
+                } else {
+                    newRow += `<td>${cell.innerText}</td>`;
+                }
+
+            });
+
+            if(rowHasValue){
+                tableHTML += `<tr>${newRow}</tr>`;
+            }
+
+        });
+
+        if(hasData){
+            html += `
+            <div class="section">
+                ${title}
+                <table>
+                    ${headerHTML}
+                    ${tableHTML}
+                </table>
+            </div>`;
+        }
+
+    });
+
+    document.getElementById('resultContainer').innerHTML = html;
+}
+
+function retour(){
+
+    document.querySelector('.container').style.display = 'grid';
+    document.querySelector('.bottom-bar').style.display = 'flex';
+    document.querySelector('h1').style.display = 'block';
+
+    document.getElementById('resultPage').style.display = 'none';
+}
+
+</script>
+
+</body>
+</html>
