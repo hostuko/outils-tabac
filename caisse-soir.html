@@ -32,6 +32,17 @@
 
   .app { width: 100%; max-width: 520px; }
 
+  .back-btn {
+    position: fixed; top: 24px; left: 16px; z-index: 30;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 50%; width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: var(--text);
+    transition: border-color 0.2s, transform 0.15s, background 0.2s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateX(-2px); }
+
   header {
     margin-bottom: 36px;
     display: flex; align-items: flex-start; justify-content: space-between;
@@ -87,6 +98,20 @@
   input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
   input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,200,130,0.12); }
   .input-hint { font-size: 11px; color: var(--muted); margin-top: 6px; text-align: right; }
+
+  /* ── MONTANT + SIGNE (étape 1) ── */
+  .amount-row { display: flex; gap: 10px; align-items: stretch; }
+  .amount-row input[type="number"] { flex: 1; min-width: 0; }
+  .sign-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); width: 58px; flex-shrink: 0;
+    font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .sign-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sign-btn.negative { background: var(--accent2); border-color: var(--accent2); color: #fff; }
 
   /* ── BILL CARDS ── */
   .bills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -186,6 +211,9 @@
 </style>
 </head>
 <body>
+
+<button class="back-btn" id="back-btn" onclick="goBack()" title="Retour" style="display:none">←</button>
+
 <div class="app">
 
   <header>
@@ -202,10 +230,13 @@
   <div class="step visible" id="step-1">
     <p class="step-label">Étape 01</p>
     <h2 class="step-title">Total attendu<br>en caisse</h2>
-    <p class="step-desc">Entrez le montant théorique du jour (depuis votre logiciel de caisse ou rapport de vente). Les valeurs négatives sont acceptées ici.</p>
+    <p class="step-desc">Entrez le montant théorique du jour (depuis votre logiciel de caisse ou rapport de vente). Utilisez le bouton ± pour un montant négatif.</p>
     <div class="input-group">
       <label>Montant attendu <span class="badge">€</span></label>
-      <input type="number" id="total-attendu" placeholder="0.00" step="0.01" inputmode="decimal">
+      <div class="amount-row">
+        <button type="button" class="sign-btn" id="sign-btn" onclick="toggleSign()" title="Inverser le signe (positif/négatif)">±</button>
+        <input type="number" id="total-attendu" placeholder="0.00" step="0.01" inputmode="decimal">
+      </div>
     </div>
     <button class="btn" onclick="goFromStep1()">Continuer →</button>
   </div>
@@ -341,12 +372,15 @@
       <p class="step-desc" style="margin-bottom:16px">⚠️ Revérifiez les quantités suivantes avant de valider :</p>
       <div class="recheck-list" id="recheck-list"></div>
       <div class="btn-group">
-        <button class="btn secondary" onclick="goStep3()">← Recorriger</button>
+        <button class="btn secondary" onclick="backToStep3()">← Recorriger</button>
         <button class="btn danger" onclick="confirmRecheck()">Confirmer quand même</button>
       </div>
     </div>
     <div id="confirm-section" style="display:none">
-      <button class="btn secondary" style="width:100%;margin-top:8px" onclick="resetAll()">↺ Nouvelle caisse</button>
+      <div class="btn-group" style="margin-top:8px">
+        <button class="btn secondary" onclick="backToStep3()">← Modifier les montants</button>
+        <button class="btn secondary" onclick="resetAll()">↺ Nouvelle caisse</button>
+      </div>
     </div>
   </div>
 
@@ -357,6 +391,7 @@
   let state = {};
   let spinTimer = null;
   let isDark = true;
+  let history = [];
 
   /* ── PERSISTANCE (localStorage) ── */
   function savePrefs() {
@@ -408,9 +443,28 @@
     const v = parseFloat(e.target.value);
     if (!isNaN(v) && v < 0) e.target.value = 0;
   }
+
+  /* SIGNE (étape 1) */
+  function toggleSign() {
+    const inp = document.getElementById('total-attendu');
+    const raw = inp.value.trim();
+    if (raw === '' || raw === '0') { inp.focus(); return; }
+    inp.value = raw.startsWith('-') ? raw.slice(1) : ('-' + raw);
+    updateSignBtn();
+    inp.focus();
+  }
+  function updateSignBtn() {
+    const inp = document.getElementById('total-attendu');
+    const btn = document.getElementById('sign-btn');
+    if (!inp || !btn) return;
+    const v = parseFloat(inp.value);
+    btn.classList.toggle('negative', !isNaN(v) && v < 0);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     loadPrefs();
     document.querySelectorAll('input[type="number"]').forEach(inp => inp.addEventListener('input', blockNegative));
+    document.getElementById('total-attendu').addEventListener('input', updateSignBtn);
     // Sauvegarder le fond de caisse à chaque modification
     document.getElementById('fond-caisse').addEventListener('input', () => {
       const v = document.getElementById('fond-caisse').value;
@@ -543,7 +597,22 @@
     document.getElementById('step-' + n)?.classList.add('visible');
     const pos = STEP_POS[String(n)] ?? totalSteps;
     renderProgress(pos);
+    const backBtn = document.getElementById('back-btn');
+    if (backBtn) backBtn.style.display = (String(n) === '1') ? 'none' : 'flex';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* RETOUR EN ARRIÈRE */
+  function goBack() {
+    if (history.length === 0) return;
+    const prev = history.pop();
+    if (prev === 'result') {
+      // Revenir au résultat = recalculer avec les valeurs actuelles
+      goResult();
+      return;
+    }
+    showStep(prev);
+    if (String(prev) === '3') updateRunning();
   }
 
   /* NAVIGATION */
@@ -553,6 +622,7 @@
     const ta = parseFloat(raw);
     if (isNaN(ta)) { alert('Montant invalide.'); return; }
     state.totalAttendu = ta;
+    history.push('1');
     showStep('1b');
   }
 
@@ -561,6 +631,7 @@
     if (fc < 0) { alert('Montant invalide.'); return; }
     state.fondCaisse = fc;
     saveFondCaisse(document.getElementById('fond-caisse').value);
+    history.push('1b');
     if (state.totalAttendu < 0) {
       // Avec étape 2 : 1 → 1b → 2 → 3 → résultat = 5 étapes
       totalSteps = 5;
@@ -581,6 +652,14 @@
     const v = raw === '' ? 0 : parseFloat(raw);
     if (isNaN(v) || v < 0) { alert('Montant invalide.'); return; }
     state.montantAjoute = v;
+    history.push('2');
+    showStep(3);
+    updateRunning();
+  }
+
+  /* Retour vers l'étape 3 depuis le résultat (corriger billets/pièces, positif ou négatif) */
+  function backToStep3() {
+    history.push('result');
     showStep(3);
     updateRunning();
   }
@@ -625,6 +704,7 @@
     state.totalNet = totalNet;
     state.difference = difference;
 
+    history.push('3');
     renderResult(difference);
     showStep('result');
   }
@@ -707,12 +787,13 @@
   }
 
   function resetAll() {
-    state = {}; totalSteps = 5;
+    state = {}; totalSteps = 5; history = [];
     ['total-attendu','fond-caisse','montant-ajoute','b500','b200','b100','b50','b20','b10','b5','total-pieces','fond-sup'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
       el.value = '';
     });
+    updateSignBtn();
     updateRunning();
     showStep(1);
   }
